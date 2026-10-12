@@ -1,0 +1,1 @@
+UI Minimalis dan ramah ux, tidak lebay dan tidak norak, professional ux
