@@ -24,4 +24,15 @@ class InternshipLogbookModel extends Model
     ];
 
     protected $useTimestamps = true;
+
+    /**
+     * Get all logbooks for a given internship, ordered by date descending
+     */
+    public function getLogbooksByInternshipId(int $internshipId): array
+    {
+        return $this->where('internship_id', $internshipId)
+                    ->orderBy('date', 'DESC')
+                    ->orderBy('id', 'DESC')
+                    ->findAll();
+    }
 }

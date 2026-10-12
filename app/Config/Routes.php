@@ -31,6 +31,12 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
         $routes->get('konversi/baru', 'Mahasiswa\Konversi::create');
         $routes->post('konversi/simpan', 'Mahasiswa\Konversi::store');
         $routes->get('konversi/detail/(:num)', 'Mahasiswa\Konversi::detail/$1');
+
+        // Modul 5: Jurnal & Logbook Aktivitas (Opsional & Pemantauan)
+        $routes->get('logbook', 'Mahasiswa\Logbook::index');
+        $routes->post('logbook/simpan', 'Mahasiswa\Logbook::store');
+        $routes->post('logbook/hapus/(:num)', 'Mahasiswa\Logbook::delete/$1');
+        $routes->get('logbook/file/(:num)', 'Mahasiswa\Logbook::serveAttachment/$1');
     });
 
     // Modul 2: TU Verifikasi Dokumen (Role: tu)
@@ -52,9 +58,12 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
         $routes->get('konversi/detail/(:num)', 'Kaprodi\Konversi::detail/$1');
     });
 
-    // Modul 3 & 4: Dosen Pembimbing (Role: dosen / dosen_pembimbing)
+    // Modul 3, 4 & 5: Dosen Pembimbing (Role: dosen / dosen_pembimbing)
     $routes->group('dosen-pembimbing', ['filter' => 'role:dosen,dosen_pembimbing'], static function ($routes) {
         $routes->get('pemantauan-logbook', 'DosenPembimbing\Logbook::index');
+        $routes->get('pemantauan-logbook/detail/(:num)', 'DosenPembimbing\Logbook::detail/$1');
+        $routes->post('pemantauan-logbook/catatan/(:num)', 'DosenPembimbing\Logbook::addNote/$1');
+        $routes->get('pemantauan-logbook/file/(:num)', 'DosenPembimbing\Logbook::serveAttachment/$1');
         $routes->post('respon-penugasan/(:num)', 'DosenPembimbing\Logbook::responAssignment/$1');
 
         // Modul 4: Verifikasi Konversi Mahasiswa Bimbingan
