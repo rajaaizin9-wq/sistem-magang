@@ -37,6 +37,9 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
         $routes->post('logbook/simpan', 'Mahasiswa\Logbook::store');
         $routes->post('logbook/hapus/(:num)', 'Mahasiswa\Logbook::delete/$1');
         $routes->get('logbook/file/(:num)', 'Mahasiswa\Logbook::serveAttachment/$1');
+
+        // Modul 6: Seminar Magang (Opsional)
+        $routes->get('seminar', 'Mahasiswa\Seminar::index');
     });
 
     // Modul 2: TU Verifikasi Dokumen (Role: tu)
@@ -72,11 +75,16 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
         $routes->post('konversi/proses/(:num)', 'DosenPembimbing\Konversi::process/$1');
     });
 
-    // Modul 4: Dosen Pengampu MK (Role: dosen / dosen_mk)
+    // Modul 4 & 6: Dosen Pengampu MK (Role: dosen / dosen_mk)
     $routes->group('dosen-mk', ['filter' => 'role:dosen,dosen_mk,dosen_pembimbing'], static function ($routes) {
         $routes->get('konversi', 'DosenMk\Konversi::index');
         $routes->get('konversi/detail/(:num)', 'DosenMk\Konversi::detail/$1');
         $routes->post('konversi/proses/(:num)', 'DosenMk\Konversi::process/$1');
+
+        // Modul 6: Seminar Magang (Opsional)
+        $routes->get('seminar', 'DosenMk\Seminar::index');
+        $routes->post('seminar/keputusan', 'DosenMk\Seminar::setDecision');
+        $routes->post('seminar/nilai/(:num)', 'DosenMk\Seminar::submitScore/$1');
     });
 
     // Modul 3 & 4: Wadek 1 (Role: wadek1)
