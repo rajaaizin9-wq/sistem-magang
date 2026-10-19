@@ -24,11 +24,13 @@
         <?php if ($request['status'] === 'SUPERVISOR_REVIEW'): ?>
             <div class="bg-white rounded-xl border border-blue-200 p-6 shadow-sm ring-2 ring-blue-500/10">
                 <div class="flex items-center space-x-2 pb-3 mb-4 border-b border-slate-100">
-                    <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center">!</span>
+                    <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                    </span>
                     <h2 class="text-base font-bold text-slate-900">Form Verifikasi Dosen Pembimbing</h2>
                 </div>
-                <p class="text-xs text-slate-500 mb-5">
-                    Mata kuliah pilihan berikut telah diverifikasi oleh Dosen Pengampu masing-masing. Berikan persetujuan atau penolakan sebagai Dosen Pembimbing untuk diteruskan ke Wakil Dekan 1.
+                <p class="text-xs text-slate-600 mb-5 leading-relaxed">
+                    Mata kuliah pilihan berikut telah diverifikasi kesesuaian CPMK-nya oleh Dosen Pengampu masing-masing. Sebagai Dosen Pembimbing, silakan periksa dan lakukan verifikasi pengajuan konversi ini untuk diteruskan ke Wakil Dekan 1.
                 </p>
 
                 <form action="<?= base_url('dosen-pembimbing/konversi/proses/' . $request['id']) ?>" method="POST">
@@ -36,36 +38,16 @@
 
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Keputusan Pembimbing:</label>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <label class="flex items-center p-4 border rounded-xl cursor-pointer hover:border-emerald-400 transition bg-slate-50/50 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50/30">
-                                    <input type="radio" name="action" value="APPROVED" class="h-4 w-4 text-emerald-600 border-slate-300 focus:ring-emerald-500" checked required>
-                                    <div class="ml-3">
-                                        <span class="font-bold text-slate-900 text-sm block">Setujui Konversi</span>
-                                        <span class="text-xs text-slate-500">Teruskan ke Wadek 1 untuk pengesahan</span>
-                                    </div>
-                                </label>
-
-                                <label class="flex items-center p-4 border rounded-xl cursor-pointer hover:border-red-400 transition bg-slate-50/50 has-[:checked]:border-red-500 has-[:checked]:bg-red-50/30">
-                                    <input type="radio" name="action" value="REJECTED" class="h-4 w-4 text-red-600 border-slate-300 focus:ring-red-500" required>
-                                    <div class="ml-3">
-                                        <span class="font-bold text-slate-900 text-sm block">Tolak Konversi</span>
-                                        <span class="text-xs text-slate-500">Batalkan permohonan konversi ini</span>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div>
                             <label for="notes" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                                Catatan / Rekomendasi Pembimbing (Opsional):
+                                Catatan / Pesan Pembimbing (Opsional):
                             </label>
-                            <textarea name="notes" id="notes" rows="3" placeholder="Tuliskan catatan rekomendasi konversi..." class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"></textarea>
+                            <textarea name="notes" id="notes" rows="3" placeholder="Tuliskan catatan atau rekomendasi verifikasi pembimbing (opsional)..." class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"></textarea>
                         </div>
 
                         <div class="pt-3 border-t border-slate-100 flex items-center justify-end space-x-3">
-                            <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition">
-                                Simpan Verifikasi Pembimbing
+                            <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition inline-flex items-center space-x-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <span>Verifikasi Pengajuan Konversi</span>
                             </button>
                         </div>
                     </div>
@@ -156,7 +138,7 @@
                                         <?= str_replace('_', ' ', $appr['role']) ?>
                                     </span>
                                     <span class="text-[11px] font-bold <?= $appr['status'] === 'APPROVED' ? 'text-emerald-700' : 'text-red-700' ?>">
-                                        <?= $appr['status'] === 'APPROVED' ? '✓ Disetujui' : '✗ Ditolak' ?>
+                                        <?= $appr['status'] === 'APPROVED' ? ($appr['role'] === 'dosen_pembimbing' ? '✓ Telah Diverifikasi' : '✓ Disetujui') : '✗ Ditolak' ?>
                                     </span>
                                 </div>
                                 <?php if (!empty($appr['notes'])): ?>

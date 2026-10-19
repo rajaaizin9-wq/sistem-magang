@@ -120,25 +120,25 @@ class Konversi extends BaseController
             return redirect()->to('/dosen-pembimbing/konversi')->with('error', 'Status pengajuan konversi tidak dalam tahap verifikasi pembimbing.');
         }
 
-        $action = $this->request->getPost('action'); // 'APPROVED' or 'REJECTED'
-        $notes  = $this->request->getPost('notes');
+        // Verify that this lecturer is the assigned supervisor
+        $assignment = $this->supervisorAssignmentModel
+            ->where('internship_id', $request['internship_id'])
+            ->where('lecturer_id', $lecturer['id'])
+            ->where('status', 'ACCEPTED')
+            ->first();
 
-        if (!in_array($action, ['APPROVED', 'REJECTED'])) {
-            return redirect()->back()->with('error', 'Tindakan yang dipilih tidak valid.');
+        if (!$assignment) {
+            return redirect()->to('/dosen-pembimbing/konversi')->with('error', 'Anda tidak tercatat sebagai Dosen Pembimbing untuk magang ini.');
         }
 
-        if ($action === 'REJECTED' && empty(trim($notes))) {
-            return redirect()->back()->withInput()->with('error', 'Harap sertakan alasan penolakan.');
-        }
-
-        $nextStatus = ($action === 'APPROVED') ? 'VICE_DEAN_REVIEW' : 'REJECTED';
+        $notes = $this->request->getPost('notes');
 
         $db = \Config\Database::connect();
         $db->transStart();
 
-        // 1. Update Request Status
+        // 1. Update Request Status to VICE_DEAN_REVIEW
         $this->conversionRequestModel->update($id, [
-            'status' => $nextStatus,
+            'status' => 'VICE_DEAN_REVIEW',
         ]);
 
         // 2. Insert into Approval Trail
@@ -146,8 +146,8 @@ class Konversi extends BaseController
             'conversion_request_id' => $id,
             'approver_id'           => $userId,
             'role'                  => 'dosen_pembimbing',
-            'status'                => $action,
-            'notes'                 => $notes ?: 'Disetujui oleh Dosen Pembimbing',
+            'status'                => 'APPROVED',
+            'notes'                 => !empty(trim($notes ?? '')) ? trim($notes) : 'Telah diverifikasi oleh Dosen Pembimbing',
             'approved_at'           => date('Y-m-d H:i:s'),
         ]);
 
@@ -157,10 +157,6 @@ class Konversi extends BaseController
             return redirect()->back()->with('error', 'Gagal memproses verifikasi konversi.');
         }
 
-        $msg = ($action === 'APPROVED')
-            ? 'Pengajuan konversi berhasil disetujui dan diteruskan ke Wakil Dekan 1.'
-            : 'Pengajuan konversi telah ditolak.';
-
-        return redirect()->to('/dosen-pembimbing/konversi')->with('success', $msg);
+        return redirect()->to('/dosen-pembimbing/konversi')->with('success', 'Pengajuan konversi berhasil diverifikasi oleh Dosen Pembimbing dan diteruskan ke Wakil Dekan 1.');
     }
 }
