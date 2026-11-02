@@ -47,15 +47,39 @@ class Auth extends BaseController
         }
 
         // Set Session Data
+        $activeRole = ($user['role'] === 'dosen') ? 'dosen_pembimbing' : $user['role'];
+
         session()->set([
-            'userId'     => $user['id'],
-            'userName'   => $user['name'],
-            'userEmail'  => $user['email'],
-            'role'       => $user['role'],
-            'isLoggedIn' => true,
+            'userId'      => $user['id'],
+            'userName'    => $user['name'],
+            'userEmail'   => $user['email'],
+            'role'        => $user['role'],
+            'active_role' => $activeRole,
+            'isLoggedIn'  => true,
         ]);
 
         return redirect()->to('/dashboard')->with('success', 'Selamat datang kembali, ' . $user['name'] . '!');
+    }
+
+    public function switchRole($targetRole)
+    {
+        if (!session()->get('isLoggedIn')) {
+            return redirect()->to('/login');
+        }
+
+        if (session()->get('role') !== 'dosen') {
+            return redirect()->to('/dashboard');
+        }
+
+        $allowedRoles = ['dosen_pembimbing', 'dosen_mk'];
+        if (!in_array($targetRole, $allowedRoles)) {
+            return redirect()->to('/dashboard')->with('error', 'Peran yang dipilih tidak valid.');
+        }
+
+        session()->set('active_role', $targetRole);
+
+        $roleLabel = ($targetRole === 'dosen_pembimbing') ? 'Dosen Pembimbing' : 'Dosen Pengampu MK';
+        return redirect()->to('/dashboard')->with('success', 'Berhasil beralih ke peran ' . $roleLabel . '.');
     }
 
     public function logout()

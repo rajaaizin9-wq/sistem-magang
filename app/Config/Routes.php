@@ -17,6 +17,7 @@ $routes->get('logout', 'Auth::logout');
 // Protected Routes (Memerlukan Filter Auth)
 $routes->group('', ['filter' => 'auth'], static function ($routes) {
     $routes->get('dashboard', 'Dashboard::index');
+    $routes->get('switch-role/(:segment)', 'Auth::switchRole/$1');
 
     // Modul 2 & 4: Mahasiswa (Role: mahasiswa)
     $routes->group('mahasiswa', ['filter' => 'role:mahasiswa'], static function ($routes) {

@@ -52,10 +52,15 @@
                 </a>
             </div>
 
+            <?php
+            $role       = session()->get('role');
+            $activeRole = session()->get('active_role') ?? ($role === 'dosen' ? 'dosen_pembimbing' : $role);
+            ?>
+
             <!-- Role Badge Banner -->
             <div class="mx-4 my-3 px-3 py-2 bg-slate-800 rounded-lg text-xs flex items-center space-x-2 border border-slate-700/50 flex-shrink-0">
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span class="text-slate-300 capitalize font-medium">Role: <?= str_replace('_', ' ', session()->get('role')) ?></span>
+                <span class="text-slate-300 capitalize font-medium">Role: <?= str_replace('_', ' ', $role === 'dosen' ? $activeRole : $role) ?></span>
             </div>
 
             <!-- Navigation Links -->
@@ -85,7 +90,6 @@
 
                 return $isActive ? 'text-blue-400' : 'text-slate-400';
             };
-            $role = session()->get('role');
             ?>
             <nav class="p-4 space-y-1 text-sm font-medium">
                 <a href="<?= base_url('dashboard') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg <?= $getNavItemClass('dashboard', true) ?>">
@@ -131,31 +135,33 @@
                 <?php endif; ?>
 
                 <?php if (in_array($role, ['dosen', 'dosen_pembimbing', 'dosen_mk'])): ?>
-                    <!-- Section: Peran Dosen Pembimbing / Pemantau -->
-                    <div class="pt-3 pb-1">
-                        <span class="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">Peran: Pemantau</span>
-                    </div>
-                    <a href="<?= base_url('dosen-pembimbing/pemantauan-logbook') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg <?= $getNavItemClass('dosen-pembimbing/pemantauan-logbook') ?>">
-                        <svg class="w-5 h-5 <?= $getNavIconClass('dosen-pembimbing/pemantauan-logbook') ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                        <span>Pemantauan Logbook</span>
-                    </a>
-                    <a href="<?= base_url('dosen-pembimbing/konversi') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg <?= $getNavItemClass('dosen-pembimbing/konversi') ?>">
-                        <svg class="w-5 h-5 <?= $getNavIconClass('dosen-pembimbing/konversi') ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>Verifikasi Konversi</span>
-                    </a>
-
-                    <!-- Section: Peran Dosen Pengampu MK -->
-                    <div class="pt-3 pb-1">
-                        <span class="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">Peran: Pengampu MK</span>
-                    </div>
-                    <a href="<?= base_url('dosen-mk/konversi') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg <?= $getNavItemClass('dosen-mk/konversi') ?>">
-                        <svg class="w-5 h-5 <?= $getNavIconClass('dosen-mk/konversi') ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                        <span>Verifikasi MK Pengampu</span>
-                    </a>
-                    <a href="<?= base_url('dosen-mk/seminar') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg <?= $getNavItemClass('dosen-mk/seminar') ?>">
-                        <svg class="w-5 h-5 <?= $getNavIconClass('dosen-mk/seminar') ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        <span>Seminar Magang</span>
-                    </a>
+                    <?php if ($activeRole === 'dosen_pembimbing'): ?>
+                        <!-- Menu Khusus Mode: Dosen Pembimbing -->
+                        <div class="pt-3 pb-1">
+                            <span class="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">Menu Pembimbing</span>
+                        </div>
+                        <a href="<?= base_url('dosen-pembimbing/pemantauan-logbook') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg <?= $getNavItemClass('dosen-pembimbing/pemantauan-logbook') ?>">
+                            <svg class="w-5 h-5 <?= $getNavIconClass('dosen-pembimbing/pemantauan-logbook') ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                            <span>Pemantauan Logbook</span>
+                        </a>
+                        <a href="<?= base_url('dosen-pembimbing/konversi') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg <?= $getNavItemClass('dosen-pembimbing/konversi') ?>">
+                            <svg class="w-5 h-5 <?= $getNavIconClass('dosen-pembimbing/konversi') ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>Verifikasi Konversi</span>
+                        </a>
+                    <?php elseif ($activeRole === 'dosen_mk'): ?>
+                        <!-- Menu Khusus Mode: Dosen Pengampu MK -->
+                        <div class="pt-3 pb-1">
+                            <span class="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">Menu Pengampu MK</span>
+                        </div>
+                        <a href="<?= base_url('dosen-mk/konversi') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg <?= $getNavItemClass('dosen-mk/konversi') ?>">
+                            <svg class="w-5 h-5 <?= $getNavIconClass('dosen-mk/konversi') ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            <span>Verifikasi MK Pengampu</span>
+                        </a>
+                        <a href="<?= base_url('dosen-mk/seminar') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg <?= $getNavItemClass('dosen-mk/seminar') ?>">
+                            <svg class="w-5 h-5 <?= $getNavIconClass('dosen-mk/seminar') ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <span>Seminar Magang</span>
+                        </a>
+                    <?php endif; ?>
                 <?php endif; ?>
 
                 <?php if ($role === 'wadek1'): ?>
@@ -182,23 +188,56 @@
                     <h2 class="text-base font-semibold text-slate-800 hidden sm:block"><?= $title ?? 'SIMAGANG' ?></h2>
                 </div>
 
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-3 sm:space-x-4">
+                    <!-- Quick Role Switch Pill for Dosen in Header -->
+                    <?php if ($role === 'dosen'): ?>
+                        <div class="hidden sm:inline-flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs">
+                            <span class="text-slate-400 font-medium px-2 text-[11px] uppercase tracking-wider">Peran:</span>
+                            <a href="<?= base_url('switch-role/dosen_pembimbing') ?>"
+                               class="px-2.5 py-1 rounded font-semibold transition <?= $activeRole === 'dosen_pembimbing' ? 'bg-white text-blue-700 shadow-sm border border-slate-200/80' : 'text-slate-600 hover:text-slate-900' ?>">
+                                👨‍🏫 Pembimbing
+                            </a>
+                            <a href="<?= base_url('switch-role/dosen_mk') ?>"
+                               class="px-2.5 py-1 rounded font-semibold transition <?= $activeRole === 'dosen_mk' ? 'bg-white text-blue-700 shadow-sm border border-slate-200/80' : 'text-slate-600 hover:text-slate-900' ?>">
+                                📚 Pengampu MK
+                            </a>
+                        </div>
+                    <?php endif; ?>
+
                     <!-- User Profile Dropdown -->
                     <div class="relative">
-                        <button id="userMenuBtn" class="flex items-center space-x-3 focus:outline-none">
+                        <button id="userMenuBtn" class="flex items-center space-x-2.5 focus:outline-none bg-slate-50 hover:bg-slate-100 p-1.5 rounded-lg border border-slate-200 transition">
                             <div class="w-8 h-8 rounded-full bg-slate-800 text-white font-bold text-xs flex items-center justify-center">
                                 <?= strtoupper(substr(session()->get('userName') ?? 'U', 0, 1)) ?>
                             </div>
-                            <span class="text-sm font-medium text-slate-700 hidden sm:inline-block"><?= session()->get('userName') ?></span>
+                            <div class="text-left hidden sm:block">
+                                <span class="text-xs font-semibold text-slate-800 block leading-tight"><?= session()->get('userName') ?></span>
+                                <span class="text-[10px] text-slate-400 capitalize block leading-tight"><?= str_replace('_', ' ', $role === 'dosen' ? $activeRole : $role) ?></span>
+                            </div>
                             <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </button>
 
-                        <div id="userMenuDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-lg py-1 text-sm text-slate-700 z-50">
+                        <div id="userMenuDropdown" class="hidden absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 text-sm text-slate-700 z-50">
                             <div class="px-4 py-2 border-b border-slate-100">
-                                <p class="font-medium text-slate-900 truncate"><?= session()->get('userName') ?></p>
+                                <p class="font-bold text-slate-900 truncate"><?= session()->get('userName') ?></p>
                                 <p class="text-xs text-slate-500 truncate"><?= session()->get('userEmail') ?></p>
                             </div>
-                            <a href="<?= base_url('logout') ?>" class="block px-4 py-2 text-red-600 hover:bg-red-50 transition">Keluar (Logout)</a>
+
+                            <?php if ($role === 'dosen'): ?>
+                                <div class="py-1.5 border-b border-slate-100 bg-slate-50/50">
+                                    <span class="block px-4 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Ganti Mode Peran</span>
+                                    <a href="<?= base_url('switch-role/dosen_pembimbing') ?>" class="flex items-center justify-between px-4 py-1.5 text-xs hover:bg-slate-100 transition <?= $activeRole === 'dosen_pembimbing' ? 'font-bold text-blue-600 bg-blue-50/50' : 'text-slate-700' ?>">
+                                        <span>👨‍🏫 Dosen Pembimbing</span>
+                                        <?php if ($activeRole === 'dosen_pembimbing'): ?><span class="text-blue-600 font-bold">✓</span><?php endif; ?>
+                                    </a>
+                                    <a href="<?= base_url('switch-role/dosen_mk') ?>" class="flex items-center justify-between px-4 py-1.5 text-xs hover:bg-slate-100 transition <?= $activeRole === 'dosen_mk' ? 'font-bold text-blue-600 bg-blue-50/50' : 'text-slate-700' ?>">
+                                        <span>📚 Dosen Pengampu MK</span>
+                                        <?php if ($activeRole === 'dosen_mk'): ?><span class="text-blue-600 font-bold">✓</span><?php endif; ?>
+                                    </a>
+                                </div>
+                            <?php endif; ?>
+
+                            <a href="<?= base_url('logout') ?>" class="block px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 transition">Keluar (Logout)</a>
                         </div>
                     </div>
                 </div>

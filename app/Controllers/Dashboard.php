@@ -22,29 +22,35 @@ class Dashboard extends BaseController
 
         switch ($role) {
             case 'mahasiswa':
-                $studentModel        = new StudentModel();
-                $internshipModel     = new InternshipModel();
-                $assignmentModel     = new \App\Models\SupervisorAssignmentModel();
-                $student             = $studentModel->where('user_id', $userId)->first();
-                $data['student']     = $student;
-                $internships         = $student ? $internshipModel->where('student_id', $student['id'])->orderBy('id', 'DESC')->findAll() : [];
+                $studentModel    = new StudentModel();
+                $internshipModel = new InternshipModel();
+                $student         = $studentModel->getStudentWithDetails($userId);
+                $data['student'] = $student;
+
+                $internships = $student ? $internshipModel
+                    ->select('internships.*, supervisor_assignments.status as assignment_status, lecturers_user.name as supervisor_name')
+                    ->join('supervisor_assignments', 'supervisor_assignments.internship_id = internships.id', 'left')
+                    ->join('lecturers', 'lecturers.id = supervisor_assignments.lecturer_id', 'left')
+                    ->join('users as lecturers_user', 'lecturers_user.id = lecturers.user_id', 'left')
+                    ->where('internships.student_id', $student['id'])
+                    ->orderBy('internships.id', 'DESC')
+                    ->findAll() : [];
                 $data['internships'] = $internships;
 
-                // Cek penugasan pembimbing aktif untuk periode magang terbaru
-                $activeAssignment = null;
-                if (!empty($internships)) {
-                    $activeAssignment = $assignmentModel->select('supervisor_assignments.*, users.name as lecturer_name, users.email as lecturer_email, lecturers.nidn, lecturers.phone')
-                                                        ->join('lecturers', 'lecturers.id = supervisor_assignments.lecturer_id')
-                                                        ->join('users', 'users.id = lecturers.user_id')
-                                                        ->where('internship_id', $internships[0]['id'])
-                                                        ->where('supervisor_assignments.status', 'ACCEPTED')
-                                                        ->first();
+                // Hitung statistik penting
+                $data['activeInternshipsCount'] = count(array_filter($internships, fn($i) => $i['status'] === 'INTERNSHIP_ACTIVE'));
+
+                // Total Logbook yang sudah terisi
+                $internshipIds = array_column($internships, 'id');
+                $logbookCount  = 0;
+                if (!empty($internshipIds)) {
+                    $logbookModel = new \App\Models\InternshipLogbookModel();
+                    $logbookCount = $logbookModel->whereIn('internship_id', $internshipIds)->countAllResults();
                 }
-                $data['activeAssignment'] = $activeAssignment;
-                $data['latestInternship'] = !empty($internships) ? $internships[0] : null;
+                $data['logbookCount'] = $logbookCount;
 
                 // Konversi MK
-                $conversionModel = new \App\Models\ConversionRequestModel();
+                $conversionModel         = new \App\Models\ConversionRequestModel();
                 $data['conversionCount'] = $student ? $conversionModel->where('student_id', $student['id'])->countAllResults() : 0;
 
                 return view('mahasiswa/dashboard', $data);
@@ -72,6 +78,14 @@ class Dashboard extends BaseController
                 $courseModel             = new CourseModel();
                 $conversionCourseModel   = new \App\Models\ConversionRequestCourseModel();
                 $conversionModel         = new \App\Models\ConversionRequestModel();
+
+                // Pastikan active_role terinisialisasi
+                $activeRole = session()->get('active_role');
+                if (!$activeRole || !in_array($activeRole, ['dosen_pembimbing', 'dosen_mk'])) {
+                    $activeRole = 'dosen_pembimbing';
+                    session()->set('active_role', $activeRole);
+                }
+                $data['activeRole'] = $activeRole;
 
                 $lecturer = $lecturerModel->where('user_id', $userId)->first();
                 $data['lecturer'] = $lecturer;
@@ -101,6 +115,11 @@ class Dashboard extends BaseController
 
                     $spvConversionReqs = $conversionModel->getRequestsForSupervisor($lecturer['id']);
                     $data['pendingSupervisorConversionCount'] = count(array_filter($spvConversionReqs, fn($r) => $r['status'] === 'SUPERVISOR_REVIEW'));
+
+                    // Seminar Stats untuk Dosen MK
+                    $seminarModel = new \App\Models\SeminarModel();
+                    $candidateSeminars = $seminarModel->getCandidateSeminarsForLecturer($lecturer['id']);
+                    $data['candidateSeminarsCount'] = count($candidateSeminars);
                 } else {
                     $data['assignments']                      = [];
                     $data['pendingAssignmentsCount']          = 0;
@@ -108,6 +127,7 @@ class Dashboard extends BaseController
                     $data['courses']                          = [];
                     $data['pendingCourseConversionCount']     = 0;
                     $data['pendingSupervisorConversionCount'] = 0;
+                    $data['candidateSeminarsCount']           = 0;
                 }
 
                 return view('dosen/dashboard', $data);
