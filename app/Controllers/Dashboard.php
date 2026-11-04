@@ -155,6 +155,9 @@ class Dashboard extends BaseController
 
                 return view('wadek1/dashboard', $data);
 
+            case 'admin':
+                return redirect()->to('admin/users/kaprodi');
+
             default:
                 return view('mahasiswa/dashboard', $data);
         }

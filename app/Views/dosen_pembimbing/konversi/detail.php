@@ -98,6 +98,18 @@
                             </div>
                         <?php endif; ?>
 
+                        <?php if (!empty($c['proposal_file'])): ?>
+                            <div class="mt-2 flex items-center justify-between p-2.5 bg-blue-50/50 border border-blue-100 rounded-lg text-xs">
+                                <div class="flex items-center space-x-2 truncate mr-2">
+                                    <span class="text-blue-600 font-bold">📄</span>
+                                    <span class="font-medium text-slate-700 truncate"><?= esc($c['proposal_file']) ?></span>
+                                </div>
+                                <a href="<?= base_url('konversi/proposal/' . $c['id']) ?>" target="_blank" class="text-blue-700 hover:text-blue-900 font-semibold flex-shrink-0">
+                                    Unduh Proposal &rarr;
+                                </a>
+                            </div>
+                        <?php endif; ?>
+
                         <?php if (!empty($c['rejection_reason'])): ?>
                             <div class="mt-2.5 p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">
                                 <strong>Catatan Dosen MK:</strong> <?= esc($c['rejection_reason']) ?>

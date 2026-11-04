@@ -19,6 +19,11 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
     $routes->get('dashboard', 'Dashboard::index');
     $routes->get('switch-role/(:segment)', 'Auth::switchRole/$1');
 
+    // Berkas & Template Proposal Konversi
+    $routes->get('konversi/template-default', 'KonversiFile::defaultTemplate');
+    $routes->get('konversi/template-mk/(:num)', 'KonversiFile::courseTemplate/$1');
+    $routes->get('konversi/proposal/(:num)', 'KonversiFile::studentProposal/$1');
+
     // Modul 2 & 4: Mahasiswa (Role: mahasiswa)
     $routes->group('mahasiswa', ['filter' => 'role:mahasiswa'], static function ($routes) {
         // Pendaftaran
@@ -81,6 +86,8 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
         $routes->get('konversi', 'DosenMk\Konversi::index');
         $routes->get('konversi/detail/(:num)', 'DosenMk\Konversi::detail/$1');
         $routes->post('konversi/proses/(:num)', 'DosenMk\Konversi::process/$1');
+        $routes->post('konversi/template-upload/(:num)', 'DosenMk\Konversi::uploadTemplate/$1');
+        $routes->post('konversi/template-hapus/(:num)', 'DosenMk\Konversi::deleteTemplate/$1');
 
         // Modul 6: Seminar Magang (Opsional)
         $routes->get('seminar', 'DosenMk\Seminar::index');
@@ -97,6 +104,16 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
         $routes->get('konversi', 'Wadek1\Konversi::index');
         $routes->get('konversi/detail/(:num)', 'Wadek1\Konversi::detail/$1');
         $routes->post('konversi/proses/(:num)', 'Wadek1\Konversi::process/$1');
+    });
+
+    // Admin: CRUD akun Kaprodi & Instansi Magang ((:segment) = kaprodi|instansi)
+    $routes->group('admin/users', ['filter' => 'role:admin'], static function ($routes) {
+        $routes->get('(:segment)', 'Admin\Users::index/$1');
+        $routes->get('(:segment)/form', 'Admin\Users::form/$1');
+        $routes->get('(:segment)/form/(:num)', 'Admin\Users::form/$1/$2');
+        $routes->post('(:segment)/save', 'Admin\Users::save/$1');
+        $routes->post('(:segment)/save/(:num)', 'Admin\Users::save/$1/$2');
+        $routes->post('(:segment)/delete/(:num)', 'Admin\Users::delete/$1/$2');
     });
 });
 

@@ -14,6 +14,7 @@ class ConversionRequestCourseModel extends Model
         'conversion_request_id',
         'course_id',
         'student_justification',
+        'proposal_file',
         'status',
         'rejection_reason',
     ];

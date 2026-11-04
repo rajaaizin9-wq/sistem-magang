@@ -18,6 +18,7 @@ class CourseModel extends Model
         'program_study_id',
         'lecturer_id',
         'is_elective',
+        'proposal_template',
     ];
 
     protected $useTimestamps = true;

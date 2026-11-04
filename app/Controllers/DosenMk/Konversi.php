@@ -41,10 +41,13 @@ class Konversi extends BaseController
         $pendingCount  = count(array_filter($requests, fn($r) => $r['status'] === 'PENDING'));
         $reviewedCount = count(array_filter($requests, fn($r) => $r['status'] !== 'PENDING'));
 
+        $courses = $this->courseModel->where('lecturer_id', $lecturer['id'])->where('is_elective', 1)->findAll();
+
         $data = [
             'title'         => 'Verifikasi Konversi MK Pengampu',
             'lecturer'      => $lecturer,
             'requests'      => $requests,
+            'courses'       => $courses,
             'pendingCount'  => $pendingCount,
             'reviewedCount' => $reviewedCount,
         ];
@@ -184,5 +187,80 @@ class Konversi extends BaseController
             : 'Mata kuliah ditolak untuk konversi magang.';
 
         return redirect()->to('/dosen-mk/konversi')->with('success', $msg);
+    }
+
+    public function uploadTemplate($courseId)
+    {
+        $userId   = session()->get('userId');
+        $lecturer = $this->lecturerModel->where('user_id', $userId)->first();
+
+        if (!$lecturer) {
+            return redirect()->to('/dashboard')->with('error', 'Profil dosen tidak ditemukan.');
+        }
+
+        $course = $this->courseModel->find($courseId);
+        if (!$course || $course['lecturer_id'] != $lecturer['id']) {
+            return redirect()->back()->with('error', 'Mata kuliah tidak ditemukan atau Anda bukan dosen pengampu mata kuliah ini.');
+        }
+
+        $file = $this->request->getFile('template_file');
+        if (!$file || !$file->isValid()) {
+            return redirect()->back()->with('error', 'Pilih berkas template proposal yang valid.');
+        }
+
+        $ext = strtolower($file->getClientExtension());
+        if (!in_array($ext, ['doc', 'docx', 'pdf'])) {
+            return redirect()->back()->with('error', 'Format template harus berupa DOC, DOCX, atau PDF.');
+        }
+
+        if ($file->getSizeByUnit('mb') > 5) {
+            return redirect()->back()->with('error', 'Ukuran template maksimal 5 MB.');
+        }
+
+        $uploadDir = WRITEPATH . 'uploads/templates/courses/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0775, true);
+        }
+
+        // Hapus template lama jika ada
+        if (!empty($course['proposal_template']) && file_exists($uploadDir . $course['proposal_template'])) {
+            @unlink($uploadDir . $course['proposal_template']);
+        }
+
+        $newFileName = 'template_mk_' . $courseId . '_' . time() . '.' . $ext;
+        $file->move($uploadDir, $newFileName);
+
+        $this->courseModel->update($courseId, [
+            'proposal_template' => $newFileName,
+        ]);
+
+        return redirect()->back()->with('success', 'Format template proposal untuk mata kuliah ' . $course['name'] . ' berhasil diunggah.');
+    }
+
+    public function deleteTemplate($courseId)
+    {
+        $userId   = session()->get('userId');
+        $lecturer = $this->lecturerModel->where('user_id', $userId)->first();
+
+        if (!$lecturer) {
+            return redirect()->to('/dashboard')->with('error', 'Profil dosen tidak ditemukan.');
+        }
+
+        $course = $this->courseModel->find($courseId);
+        if (!$course || $course['lecturer_id'] != $lecturer['id']) {
+            return redirect()->back()->with('error', 'Mata kuliah tidak ditemukan atau Anda bukan dosen pengampu mata kuliah ini.');
+        }
+
+        if (!empty($course['proposal_template'])) {
+            $filePath = WRITEPATH . 'uploads/templates/courses/' . $course['proposal_template'];
+            if (file_exists($filePath)) {
+                @unlink($filePath);
+            }
+            $this->courseModel->update($courseId, [
+                'proposal_template' => null,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Template khusus dihapus. Mata kuliah ' . $course['name'] . ' kini menggunakan template default sistem.');
     }
 }

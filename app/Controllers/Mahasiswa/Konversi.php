@@ -145,11 +145,30 @@ class Konversi extends BaseController
             return redirect()->back()->withInput()->with('error', 'Pilih minimal satu mata kuliah pilihan untuk dikonversi.');
         }
 
-        // Validate that each selected course has non-empty justification
+        // Validate that each selected course has non-empty justification and valid proposal file
+        $uploadTargetDir = WRITEPATH . 'uploads/conversions/proposals';
+        if (!is_dir($uploadTargetDir)) {
+            mkdir($uploadTargetDir, 0775, true);
+        }
+
         foreach ($courseIds as $cid) {
             $justificationText = trim($justifications[$cid] ?? '');
             if (empty($justificationText)) {
                 return redirect()->back()->withInput()->with('error', 'Harap isi penjelasan hubungan aktivitas magang untuk setiap mata kuliah yang Anda pilih.');
+            }
+
+            $proposalFile = $this->request->getFile("proposals_{$cid}");
+            if (!$proposalFile || !$proposalFile->isValid()) {
+                return redirect()->back()->withInput()->with('error', 'Harap unggah berkas proposal untuk setiap mata kuliah pilihan yang Anda pilih.');
+            }
+
+            $ext = strtolower($proposalFile->getClientExtension());
+            if (!in_array($ext, ['pdf', 'doc', 'docx'])) {
+                return redirect()->back()->withInput()->with('error', 'Format berkas proposal harus berupa PDF, DOC, atau DOCX.');
+            }
+
+            if ($proposalFile->getSizeByUnit('mb') > 5) {
+                return redirect()->back()->withInput()->with('error', 'Ukuran berkas proposal tidak boleh melebihi 5 MB.');
             }
         }
 
@@ -165,12 +184,17 @@ class Konversi extends BaseController
             'notes'         => $notes,
         ]);
 
-        // 2. Insert Conversion Request Courses with student_justification
+        // 2. Insert Conversion Request Courses with student_justification & proposal_file
         foreach ($courseIds as $cid) {
+            $proposalFile = $this->request->getFile("proposals_{$cid}");
+            $newFileName  = 'proposal_' . $student['id'] . '_' . $cid . '_' . time() . '_' . $proposalFile->getRandomName();
+            $proposalFile->move($uploadTargetDir, $newFileName);
+
             $this->conversionRequestCourseModel->insert([
                 'conversion_request_id' => $requestId,
                 'course_id'             => (int) $cid,
                 'student_justification' => trim($justifications[$cid] ?? ''),
+                'proposal_file'         => $newFileName,
                 'status'                => 'PENDING',
             ]);
         }
