@@ -128,4 +128,23 @@ class KonversiFile extends BaseController
 
         return $this->response->download($fullPath, null)->setFileName($downloadName);
     }
+
+    /**
+     * Akses / Unduh Berkas LIRS Mahasiswa
+     */
+    public function studentLirs($requestId)
+    {
+        $req = $this->requestModel->find($requestId);
+        if (!$req || empty($req['lirs_file'])) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Berkas LIRS tidak ditemukan.');
+        }
+
+        $fullPath = WRITEPATH . $req['lirs_file'];
+        if (!file_exists($fullPath)) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('File fisik LIRS tidak ditemukan di server.');
+        }
+
+        $ext = pathinfo($req['lirs_file'], PATHINFO_EXTENSION);
+        return $this->response->download($fullPath, null)->setFileName('LIRS_Mahasiswa_' . $req['id'] . '.' . ($ext ?: 'pdf'));
+    }
 }

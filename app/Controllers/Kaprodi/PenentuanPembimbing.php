@@ -115,7 +115,7 @@ class PenentuanPembimbing extends BaseController
 
     public function assign($id)
     {
-        $internship = $this->internshipModel->find($id);
+        $internship = $this->internshipModel->getInternshipWithDetails($id);
 
         if (!$internship) {
             return redirect()->back()->with('error', 'Data magang tidak valid.');
@@ -132,7 +132,7 @@ class PenentuanPembimbing extends BaseController
             return redirect()->back()->with('error', 'Silakan pilih Dosen Pembimbing terlebih dahulu.');
         }
 
-        $selectedLecturer = $this->lecturerModel->select('lecturers.*, users.role')
+        $selectedLecturer = $this->lecturerModel->select('lecturers.*, users.role, users.name as lecturer_name')
                                                ->join('users', 'users.id = lecturers.user_id')
                                                ->where('lecturers.id', $lecturerId)
                                                ->where('users.role', 'dosen')
@@ -157,6 +157,10 @@ class PenentuanPembimbing extends BaseController
         $this->internshipModel->update($id, [
             'status' => 'SUPERVISOR_ASSIGNED',
         ]);
+
+        // Notifikasi ke Dosen Pembimbing & Mahasiswa
+        send_notification($selectedLecturer['user_id'], 'Penugasan Pembimbing Magang', 'Anda ditugaskan oleh Kaprodi membimbing mahasiswa ' . $internship['student_name'] . ' (' . $internship['nim'] . ') di ' . $internship['company_name'] . '.', 'dosen-pembimbing/pemantauan-logbook');
+        send_notification($internship['user_id'], 'Dosen Pembimbing Ditetapkan', 'Dosen pembimbing magang Anda telah ditetapkan: ' . $selectedLecturer['lecturer_name'] . '. Menunggu konfirmasi kesediaan.', 'mahasiswa/pendaftaran');
 
         return redirect()->to('/kaprodi/penentuan-pembimbing')->with('success', 'Dosen Pembimbing berhasil ditentukan. Menunggu konfirmasi kesediaan dari Dosen terkait.');
     }

@@ -102,6 +102,10 @@ class Pendaftaran extends BaseController
 
         $internshipId = $this->internshipModel->insert($internshipData);
 
+        // Notifikasi ke Staf TU
+        $studentName = session()->get('userName');
+        send_notification_to_role('tu', 'Pengajuan Magang Baru', "Mahasiswa {$studentName} mengajukan permohonan magang di {$internshipData['company_name']}.", 'tu/verifikasi-dokumen');
+
         // Upload Documents
         $uploadPath = WRITEPATH . 'uploads/documents';
         if (!is_dir($uploadPath)) {

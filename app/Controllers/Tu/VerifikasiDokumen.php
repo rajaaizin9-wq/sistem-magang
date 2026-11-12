@@ -66,7 +66,7 @@ class VerifikasiDokumen extends BaseController
 
     public function process($id)
     {
-        $internship = $this->internshipModel->find($id);
+        $internship = $this->internshipModel->getInternshipWithDetails($id);
 
         if (!$internship) {
             return redirect()->to('/tu/verifikasi-dokumen')->with('error', 'Data magang tidak valid.');
@@ -88,6 +88,10 @@ class VerifikasiDokumen extends BaseController
                 'notes'       => $notes ?: 'Dokumen telah diverifikasi dan disetujui oleh Staf TU.',
             ])->update();
 
+            // Notifikasi ke Mahasiswa & Kaprodi
+            send_notification($internship['user_id'], 'Berkas Magang Disetujui TU', 'Berkas pendaftaran magang Anda di ' . $internship['company_name'] . ' telah disetujui TU dan menunggu penentuan Dosen Pembimbing oleh Kaprodi.', 'mahasiswa/pendaftaran');
+            send_notification_to_role('kaprodi', 'Penetapan Pembimbing Magang', 'Pengajuan magang mahasiswa ' . $internship['student_name'] . ' (' . $internship['nim'] . ') telah disetujui TU dan siap ditentukan Dosen Pembimbingnya.', 'kaprodi/penentuan-pembimbing', (int)$internship['program_study_id']);
+
             return redirect()->to('/tu/verifikasi-dokumen')->with('success', 'Permohonan magang berhasil disetujui dan diteruskan ke Kaprodi.');
         } elseif ($action === 'revision') {
             if (empty($notes)) {
@@ -104,6 +108,9 @@ class VerifikasiDokumen extends BaseController
                 'verified_at' => date('Y-m-d H:i:s'),
                 'notes'       => $notes,
             ])->update();
+
+            // Notifikasi revisi ke Mahasiswa
+            send_notification($internship['user_id'], 'Perbaikan Berkas Magang', 'Berkas pendaftaran magang Anda memerlukan perbaikan: ' . $notes, 'mahasiswa/pendaftaran');
 
             return redirect()->to('/tu/verifikasi-dokumen')->with('success', 'Status diubah menjadi Perlunya Revisi, catatan perbaikan dikirim ke mahasiswa.');
         }

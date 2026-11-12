@@ -14,6 +14,15 @@
         </div>
         <p class="text-xs text-slate-500 mt-1">Diajukan pada: <?= format_indo($request['created_at'], true) ?></p>
     </div>
+
+    <?php if (!empty($request['lirs_file'])): ?>
+        <div>
+            <a href="<?= base_url('konversi/lirs/' . $request['id']) ?>" target="_blank" class="inline-flex items-center px-3.5 py-2 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-sm transition">
+                <svg class="w-4 h-4 mr-1.5 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/></svg>
+                Lihat Berkas LIRS (PDF)
+            </a>
+        </div>
+    <?php endif; ?>
 </div>
 
 <!-- Workflow Stepper -->

@@ -173,6 +173,18 @@ class Logbook extends BaseController
             'status'               => 'SUBMITTED',
         ]);
 
+        // Notifikasi ke Dosen Pembimbing
+        $supervisor = $this->assignmentModel
+            ->select('lecturers.user_id')
+            ->join('lecturers', 'lecturers.id = supervisor_assignments.lecturer_id')
+            ->where('supervisor_assignments.internship_id', $internshipId)
+            ->where('supervisor_assignments.status', 'ACCEPTED')
+            ->first();
+
+        if ($supervisor && !empty($supervisor['user_id'])) {
+            send_notification((int)$supervisor['user_id'], 'Logbook Mahasiswa Baru', session()->get('userName') . ' telah mengisi logbook aktivitas minggu ke-' . $weekNumber . '.', 'dosen-pembimbing/pemantauan-logbook');
+        }
+
         return redirect()->to('/mahasiswa/logbook?internship_id=' . $internshipId)
             ->with('success', 'Catatan jurnal aktivitas berhasil disimpan.');
     }

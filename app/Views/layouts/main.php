@@ -213,6 +213,87 @@
                         </div>
                     <?php endif; ?>
 
+                    <!-- Notification Bell & Dropdown -->
+                    <?php 
+                        $currentUserId    = (int)session()->get('userId');
+                        $unreadNotifCount = get_unread_notifications_count($currentUserId);
+                        $recentNotifs     = get_user_notifications($currentUserId, 6);
+                    ?>
+                    <div class="relative">
+                        <button id="notifMenuBtn" class="relative p-2 text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 rounded-lg border border-slate-200 focus:outline-none transition" title="Notifikasi">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                            <?php if ($unreadNotifCount > 0): ?>
+                                <span class="absolute -top-1 -right-1 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
+                                    <?= $unreadNotifCount > 9 ? '9+' : $unreadNotifCount ?>
+                                </span>
+                            <?php endif; ?>
+                        </button>
+
+                        <!-- Notification Dropdown Popover -->
+                        <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden divide-y divide-slate-100">
+                            <!-- Popover Header -->
+                            <div class="px-4 py-3 bg-slate-50/80 flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <span class="font-bold text-slate-800 text-sm">Notifikasi</span>
+                                    <?php if ($unreadNotifCount > 0): ?>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">
+                                            <?= $unreadNotifCount ?> baru
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+                                <?php if ($unreadNotifCount > 0): ?>
+                                    <form action="<?= base_url('notifikasi/read-all') ?>" method="post" class="inline m-0">
+                                        <?= csrf_field() ?>
+                                        <button type="submit" class="text-[11px] font-semibold text-blue-600 hover:text-blue-800 hover:underline">
+                                            Tandai semua dibaca
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+                            </div>
+
+                            <!-- Notification Items List -->
+                            <div class="max-h-80 overflow-y-auto divide-y divide-slate-100">
+                                <?php if (!empty($recentNotifs)): ?>
+                                    <?php foreach ($recentNotifs as $notif): ?>
+                                        <?php $isUnread = empty($notif['read_at']); ?>
+                                        <a href="<?= base_url('notifikasi/open/' . $notif['id']) ?>" 
+                                           class="block px-4 py-3 hover:bg-slate-50 transition <?= $isUnread ? 'bg-blue-50/40' : '' ?>">
+                                            <div class="flex items-start justify-between gap-2">
+                                                <div class="flex items-start space-x-2.5 min-w-0">
+                                                    <?php if ($isUnread): ?>
+                                                        <span class="w-2 h-2 mt-1.5 rounded-full bg-blue-600 flex-shrink-0"></span>
+                                                    <?php else: ?>
+                                                        <span class="w-2 h-2 mt-1.5 rounded-full bg-transparent flex-shrink-0"></span>
+                                                    <?php endif; ?>
+                                                    <div class="min-w-0">
+                                                        <p class="text-xs font-semibold <?= $isUnread ? 'text-slate-900 font-bold' : 'text-slate-700' ?> truncate">
+                                                            <?= esc($notif['title']) ?>
+                                                        </p>
+                                                        <p class="text-xs text-slate-500 mt-0.5 line-clamp-2 leading-relaxed">
+                                                            <?= esc($notif['message']) ?>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <span class="text-[10px] text-slate-400 whitespace-nowrap mt-0.5 flex-shrink-0">
+                                                    <?= time_ago($notif['created_at']) ?>
+                                                </span>
+                                            </div>
+                                        </a>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <div class="p-8 text-center">
+                                        <div class="w-10 h-10 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-2">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                                        </div>
+                                        <p class="text-xs font-medium text-slate-500">Belum ada notifikasi baru</p>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- User Profile Dropdown -->
                     <div class="relative">
                         <button id="userMenuBtn" class="flex items-center space-x-2.5 focus:outline-none bg-slate-50 hover:bg-slate-100 p-1.5 rounded-lg border border-slate-200 transition">
@@ -283,19 +364,32 @@
             });
         }
 
+        // Toggle Notif Dropdown
+        const notifMenuBtn = document.getElementById('notifMenuBtn');
+        const notifDropdown = document.getElementById('notifDropdown');
+        if (notifMenuBtn && notifDropdown) {
+            notifMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (userMenuDropdown) userMenuDropdown.classList.add('hidden');
+                notifDropdown.classList.toggle('hidden');
+            });
+        }
+
         // Toggle User Menu Dropdown
         const userMenuBtn = document.getElementById('userMenuBtn');
         const userMenuDropdown = document.getElementById('userMenuDropdown');
         if (userMenuBtn && userMenuDropdown) {
             userMenuBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                if (notifDropdown) notifDropdown.classList.add('hidden');
                 userMenuDropdown.classList.toggle('hidden');
             });
-
-            document.addEventListener('click', () => {
-                userMenuDropdown.classList.add('hidden');
-            });
         }
+
+        document.addEventListener('click', () => {
+            if (userMenuDropdown) userMenuDropdown.classList.add('hidden');
+            if (notifDropdown) notifDropdown.classList.add('hidden');
+        });
     </script>
 </body>
 </html>

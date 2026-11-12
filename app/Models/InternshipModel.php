@@ -28,7 +28,7 @@ class InternshipModel extends Model
 
     public function getInternshipWithDetails($id)
     {
-        return $this->select('internships.*, students.nim, users.name as student_name, users.email as student_email, program_studies.name as prodi_name')
+        return $this->select('internships.*, students.nim, students.user_id, students.program_study_id, users.name as student_name, users.email as student_email, program_studies.name as prodi_name')
                     ->join('students', 'students.id = internships.student_id')
                     ->join('users', 'users.id = students.user_id')
                     ->join('program_studies', 'program_studies.id = students.program_study_id')

@@ -19,10 +19,15 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
     $routes->get('dashboard', 'Dashboard::index');
     $routes->get('switch-role/(:segment)', 'Auth::switchRole/$1');
 
+    // Fitur Notifikasi Global
+    $routes->get('notifikasi/open/(:num)', 'Notification::open/$1');
+    $routes->post('notifikasi/read-all', 'Notification::readAll');
+
     // Berkas & Template Proposal Konversi
     $routes->get('konversi/template-default', 'KonversiFile::defaultTemplate');
     $routes->get('konversi/template-mk/(:num)', 'KonversiFile::courseTemplate/$1');
     $routes->get('konversi/proposal/(:num)', 'KonversiFile::studentProposal/$1');
+    $routes->get('konversi/lirs/(:num)', 'KonversiFile::studentLirs/$1');
 
     // Modul 2 & 4: Mahasiswa (Role: mahasiswa)
     $routes->group('mahasiswa', ['filter' => 'role:mahasiswa'], static function ($routes) {
@@ -35,6 +40,7 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
         // Modul 4: Konversi MK Pilihan
         $routes->get('konversi', 'Mahasiswa\Konversi::index');
         $routes->get('konversi/baru', 'Mahasiswa\Konversi::create');
+        $routes->post('konversi/parse-lirs', 'Mahasiswa\Konversi::parseLirs');
         $routes->post('konversi/simpan', 'Mahasiswa\Konversi::store');
         $routes->get('konversi/detail/(:num)', 'Mahasiswa\Konversi::detail/$1');
 

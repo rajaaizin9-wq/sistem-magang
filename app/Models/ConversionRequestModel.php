@@ -15,6 +15,7 @@ class ConversionRequestModel extends Model
         'student_id',
         'status',
         'notes',
+        'lirs_file',
     ];
 
     protected $useTimestamps = true;
@@ -31,12 +32,14 @@ class ConversionRequestModel extends Model
     public function getRequestWithDetails($id)
     {
         return $this->select('conversion_requests.*, 
+                             students.user_id, students.program_study_id,
                              students.nim, students.phone as student_phone, 
                              users.name as student_name, users.email as student_email, 
                              program_studies.name as prodi_name, program_studies.code as prodi_code,
                              internships.company_name, internships.company_address, internships.position, 
                              internships.internship_type, internships.start_date, internships.end_date, 
                              internships.academic_year, internships.semester, internships.status as internship_status,
+                             spv_lecturers.user_id as supervisor_user_id,
                              spv_lecturers.nidn as supervisor_nidn,
                              spv_users.name as supervisor_name')
                     ->join('students', 'students.id = conversion_requests.student_id')

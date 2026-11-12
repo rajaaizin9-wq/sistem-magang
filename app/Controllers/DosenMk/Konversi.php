@@ -67,7 +67,7 @@ class Konversi extends BaseController
         // Get conversion course request item
         $item = $this->conversionRequestCourseModel
             ->select('conversion_request_courses.*, courses.code as course_code, courses.name as course_name, courses.credits, courses.lecturer_id,
-                     conversion_requests.id as request_id, conversion_requests.status as request_status, conversion_requests.notes as student_notes, conversion_requests.created_at as request_date,
+                     conversion_requests.id as request_id, conversion_requests.status as request_status, conversion_requests.notes as student_notes, conversion_requests.created_at as request_date, conversion_requests.lirs_file,
                      students.nim, students.phone as student_phone, users.name as student_name, users.email as student_email, program_studies.name as prodi_name,
                      internships.company_name, internships.company_address, internships.position, internships.internship_type, internships.start_date, internships.end_date, internships.academic_year, internships.semester')
             ->join('courses', 'courses.id = conversion_request_courses.course_id')
@@ -180,6 +180,16 @@ class Konversi extends BaseController
 
         if ($db->transStatus() === false) {
             return redirect()->back()->with('error', 'Gagal memproses verifikasi konversi.');
+        }
+
+        // Notifikasi ke Mahasiswa dan Pembimbing
+        $reqDetails = $this->conversionRequestModel->getRequestWithDetails($item['conversion_request_id']);
+        if ($reqDetails) {
+            send_notification((int)$reqDetails['user_id'], 'Hasil Verifikasi MK Pengampu', 'Dosen pengampu telah ' . ($action === 'ACCEPTED' ? 'menyetujui' : 'menolak') . ' konversi MK ' . $item['course_name'] . '.', 'mahasiswa/konversi');
+
+            if (!$hasPending && $hasAccepted && !empty($reqDetails['supervisor_user_id'])) {
+                send_notification((int)$reqDetails['supervisor_user_id'], 'Verifikasi Konversi Mahasiswa', 'Pengajuan konversi MK mahasiswa bimbingan ' . $reqDetails['student_name'] . ' menunggu verifikasi Anda.', 'dosen-pembimbing/konversi');
+            }
         }
 
         $msg = ($action === 'ACCEPTED') 

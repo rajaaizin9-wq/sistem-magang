@@ -66,6 +66,8 @@ class Logbook extends BaseController
             return redirect()->back()->with('error', 'Data penugasan tidak ditemukan.');
         }
 
+        $internship = $this->internshipModel->getInternshipWithDetails($assignment['internship_id']);
+
         if ($action === 'accept') {
             $this->assignmentModel->update($assignmentId, [
                 'status' => 'ACCEPTED',
@@ -75,6 +77,12 @@ class Logbook extends BaseController
             $this->internshipModel->update($assignment['internship_id'], [
                 'status' => 'INTERNSHIP_ACTIVE',
             ]);
+
+            // Notifikasi ke Mahasiswa & Kaprodi
+            if ($internship) {
+                send_notification($internship['user_id'], 'Bimbingan Magang Diterima', 'Dosen pembimbing ' . session()->get('userName') . ' telah menerima penugasan. Masa magang Anda kini resmi aktif.', 'mahasiswa/logbook');
+                send_notification_to_role('kaprodi', 'Penugasan Pembimbing Diterima', 'Dosen ' . session()->get('userName') . ' telah menerima penugasan membimbing ' . $internship['student_name'] . '.', 'kaprodi/penentuan-pembimbing', (int)$internship['program_study_id']);
+            }
 
             return redirect()->to('/dosen-pembimbing/pemantauan-logbook')->with('success', 'Anda telah menerima penugasan pemantauan. Status magang mahasiswa kini aktif.');
         } elseif ($action === 'reject') {
@@ -91,6 +99,12 @@ class Logbook extends BaseController
             $this->internshipModel->update($assignment['internship_id'], [
                 'status' => 'ADMIN_APPROVED',
             ]);
+
+            // Notifikasi ke Kaprodi & Mahasiswa
+            if ($internship) {
+                send_notification_to_role('kaprodi', 'Penugasan Pembimbing Ditolak', 'Dosen ' . session()->get('userName') . ' menolak penugasan membimbing ' . $internship['student_name'] . '. Alasan: ' . $reason, 'kaprodi/penentuan-pembimbing', (int)$internship['program_study_id']);
+                send_notification($internship['user_id'], 'Penyesuaian Pembimbing Magang', 'Penugasan dosen pembimbing Anda sedang disesuaikan kembali oleh Kaprodi.', 'mahasiswa/pendaftaran');
+            }
 
             return redirect()->to('/dosen-pembimbing/pemantauan-logbook')->with('success', 'Penolakan penugasan berhasil dikirim. Kaprodi akan menerima notifikasi untuk menunjuk dosen lain.');
         }
@@ -168,6 +182,12 @@ class Logbook extends BaseController
             'status'         => 'VERIFIED',
             'verified_at'    => date('Y-m-d H:i:s'),
         ]);
+
+        // Notifikasi ke Mahasiswa
+        $internship = $this->internshipModel->getInternshipWithDetails($logbook['internship_id']);
+        if ($internship) {
+            send_notification($internship['user_id'], 'Logbook Diverifikasi Dosen', 'Dosen pembimbing ' . session()->get('userName') . ' telah memverifikasi logbook minggu ke-' . $logbook['week_number'] . '.', 'mahasiswa/logbook');
+        }
 
         return redirect()->back()->with('success', 'Catatan pemantauan berhasil disimpan.');
     }

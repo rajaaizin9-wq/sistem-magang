@@ -157,6 +157,13 @@ class Konversi extends BaseController
             return redirect()->back()->with('error', 'Gagal memproses verifikasi konversi.');
         }
 
+        // Notifikasi ke Wadek 1 dan Mahasiswa
+        $reqDetails = $this->conversionRequestModel->getRequestWithDetails($id);
+        if ($reqDetails) {
+            send_notification_to_role('wadek1', 'Validasi Konversi MK Fakultas', 'Pengajuan konversi MK mahasiswa ' . $reqDetails['student_name'] . ' telah diverifikasi Dosen Pembimbing dan menunggu validasi Wadek 1.', 'wadek1/konversi');
+            send_notification((int)$reqDetails['user_id'], 'Konversi Diverifikasi Pembimbing', 'Pengajuan konversi MK Anda telah diverifikasi oleh Dosen Pembimbing dan diteruskan ke Wadek 1.', 'mahasiswa/konversi');
+        }
+
         return redirect()->to('/dosen-pembimbing/konversi')->with('success', 'Pengajuan konversi berhasil diverifikasi oleh Dosen Pembimbing dan diteruskan ke Wakil Dekan 1.');
     }
 }

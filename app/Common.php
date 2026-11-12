@@ -73,3 +73,119 @@ if (!function_exists('tanggal_indo')) {
         return format_indo($date, $withTime, false);
     }
 }
+
+if (!function_exists('send_notification')) {
+    /**
+     * Kirim notifikasi ke user tertentu
+     */
+    function send_notification(int $userId, string $title, string $message, ?string $link = null): bool
+    {
+        if ($userId <= 0) {
+            return false;
+        }
+
+        $db = \Config\Database::connect();
+        return (bool)$db->table('notifications')->insert([
+            'user_id'    => $userId,
+            'title'      => $title,
+            'message'    => $message,
+            'link'       => $link,
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+    }
+}
+
+if (!function_exists('send_notification_to_role')) {
+    /**
+     * Kirim notifikasi massal ke seluruh user dengan role tertentu (opsional filter prodi)
+     */
+    function send_notification_to_role(string $role, string $title, string $message, ?string $link = null, ?int $programStudyId = null): int
+    {
+        $db = \Config\Database::connect();
+        $builder = $db->table('users')->select('users.id')->where('users.role', $role)->where('users.is_active', 1);
+
+        if ($programStudyId !== null && in_array($role, ['kaprodi', 'dosen'])) {
+            $builder->join('lecturers', 'lecturers.user_id = users.id')->where('lecturers.program_study_id', $programStudyId);
+        }
+
+        $users = $builder->get()->getResultArray();
+        $count = 0;
+        foreach ($users as $u) {
+            if (send_notification((int)$u['id'], $title, $message, $link)) {
+                $count++;
+            }
+        }
+        return $count;
+    }
+}
+
+if (!function_exists('get_user_notifications')) {
+    /**
+     * Ambil daftar notifikasi untuk user yang sedang aktif
+     */
+    function get_user_notifications(int $userId, int $limit = 6): array
+    {
+        if ($userId <= 0) {
+            return [];
+        }
+
+        $db = \Config\Database::connect();
+        return $db->table('notifications')
+                  ->where('user_id', $userId)
+                  ->orderBy('id', 'DESC')
+                  ->limit($limit)
+                  ->get()
+                  ->getResultArray();
+    }
+}
+
+if (!function_exists('get_unread_notifications_count')) {
+    /**
+     * Hitung total notifikasi belum dibaca untuk user
+     */
+    function get_unread_notifications_count(int $userId): int
+    {
+        if ($userId <= 0) {
+            return 0;
+        }
+
+        $db = \Config\Database::connect();
+        return (int)$db->table('notifications')
+                       ->where('user_id', $userId)
+                       ->where('read_at IS NULL')
+                       ->countAllResults();
+    }
+}
+
+if (!function_exists('time_ago')) {
+    /**
+     * Format waktu relatif ringkas dan ramah UX
+     */
+    function time_ago($datetime): string
+    {
+        if (empty($datetime)) {
+            return '-';
+        }
+        $time = is_numeric($datetime) ? (int)$datetime : strtotime($datetime);
+        if (!$time) {
+            return '-';
+        }
+
+        $diff = time() - $time;
+        if ($diff < 60) {
+            return 'Baru saja';
+        }
+        if ($diff < 3600) {
+            return floor($diff / 60) . ' mnt lalu';
+        }
+        if ($diff < 86400) {
+            return floor($diff / 3600) . ' jam lalu';
+        }
+        if ($diff < 604800) {
+            return floor($diff / 86400) . ' hari lalu';
+        }
+
+        return format_indo($datetime, false, true);
+    }
+}

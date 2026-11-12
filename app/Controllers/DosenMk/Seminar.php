@@ -12,12 +12,14 @@ class Seminar extends BaseController
     protected $lecturerModel;
     protected $courseModel;
     protected $seminarModel;
+    protected $internshipModel;
 
     public function __construct()
     {
-        $this->lecturerModel = new LecturerModel();
-        $this->courseModel   = new CourseModel();
-        $this->seminarModel  = new SeminarModel();
+        $this->lecturerModel   = new LecturerModel();
+        $this->courseModel     = new CourseModel();
+        $this->seminarModel    = new SeminarModel();
+        $this->internshipModel = new \App\Models\InternshipModel();
     }
 
     public function index()
@@ -98,6 +100,12 @@ class Seminar extends BaseController
                 $this->seminarModel->insert($dataSave);
             }
 
+            // Notifikasi ke Mahasiswa
+            $internship = $this->internshipModel->getInternshipWithDetails($internshipId);
+            if ($internship) {
+                send_notification((int)$internship['user_id'], 'Bebas Seminar Magang', 'Mata kuliah ' . $course['name'] . ' ditetapkan bebas seminar oleh Dosen Pengampu.', 'mahasiswa/seminar');
+            }
+
             return redirect()->to('/dosen-mk/seminar')->with('success', 'Mata kuliah ' . $course['name'] . ' berhasil ditetapkan: Bebas Seminar (Tidak Diperlukan).');
         }
 
@@ -129,6 +137,12 @@ class Seminar extends BaseController
             $this->seminarModel->update($existing['id'], $dataSave);
         } else {
             $this->seminarModel->insert($dataSave);
+        }
+
+        // Notifikasi ke Mahasiswa
+        $internship = $this->internshipModel->getInternshipWithDetails($internshipId);
+        if ($internship) {
+            send_notification((int)$internship['user_id'], 'Jadwal Seminar Ditetapkan', 'Jadwal seminar magang MK ' . $course['name'] . ' telah ditetapkan pada ' . format_indo($scheduleDate, true) . ' di ' . $location . '.', 'mahasiswa/seminar');
         }
 
         return redirect()->to('/dosen-mk/seminar')->with('success', 'Jadwal seminar untuk ' . $course['name'] . ' berhasil ditetapkan.');
@@ -174,6 +188,12 @@ class Seminar extends BaseController
             'notes'  => $notes ?: $seminar['notes'],
             'status' => 'COMPLETED',
         ]);
+
+        // Notifikasi ke Mahasiswa
+        $internship = $this->internshipModel->getInternshipWithDetails($seminar['internship_id']);
+        if ($internship) {
+            send_notification((int)$internship['user_id'], 'Nilai Seminar Diterbitkan', 'Nilai seminar magang MK ' . $course['name'] . ' telah diterbitkan dengan skor: ' . $score . '.', 'mahasiswa/seminar');
+        }
 
         return redirect()->to('/dosen-mk/seminar')->with('success', 'Nilai seminar berhasil disimpan dengan skor ' . $score . '.');
     }

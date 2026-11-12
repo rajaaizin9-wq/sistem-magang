@@ -110,6 +110,13 @@ class Konversi extends BaseController
             return redirect()->back()->with('error', 'Gagal memproses verifikasi dan pengesahan konversi.');
         }
 
+        // Notifikasi ke Mahasiswa & Kaprodi
+        $reqDetails = $this->conversionRequestModel->getRequestWithDetails($id);
+        if ($reqDetails) {
+            send_notification((int)$reqDetails['user_id'], 'Konversi MK Disahkan Wadek 1', 'Pengajuan konversi MK magang Anda telah diverifikasi dan disahkan oleh Wakil Dekan 1.', 'mahasiswa/konversi');
+            send_notification_to_role('kaprodi', 'Pengesahan Konversi Selesai', 'Pengajuan konversi MK mahasiswa ' . $reqDetails['student_name'] . ' telah disahkan oleh Wakil Dekan 1.', 'kaprodi/konversi', (int)$reqDetails['program_study_id']);
+        }
+
         return redirect()->to('/wadek1/konversi')->with('success', 'Pengajuan konversi SKS magang berhasil diverifikasi dan disahkan.');
     }
 }
