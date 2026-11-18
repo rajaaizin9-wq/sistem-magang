@@ -46,4 +46,22 @@ class ConversionRequestCourseModel extends Model
                     ->orderBy('conversion_requests.created_at', 'DESC')
                     ->findAll();
     }
+
+    /**
+     * Dapatkan daftar mahasiswa magang yang konversi MK-nya disetujui untuk mata kuliah ini
+     */
+    public function getAcceptedStudentsByCourse(int $courseId)
+    {
+        return $this->select('conversion_request_courses.*, conversion_requests.internship_id, conversion_requests.student_id,
+                             students.nim, users.name as student_name, users.email as student_email,
+                             internships.company_name, internships.position, internships.academic_year, internships.semester')
+                    ->join('conversion_requests', 'conversion_requests.id = conversion_request_courses.conversion_request_id')
+                    ->join('students', 'students.id = conversion_requests.student_id')
+                    ->join('users', 'users.id = students.user_id')
+                    ->join('internships', 'internships.id = conversion_requests.internship_id')
+                    ->where('conversion_request_courses.course_id', $courseId)
+                    ->where('conversion_request_courses.status', 'ACCEPTED')
+                    ->orderBy('students.nim', 'ASC')
+                    ->findAll();
+    }
 }

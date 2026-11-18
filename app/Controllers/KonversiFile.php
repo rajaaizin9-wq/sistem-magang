@@ -122,21 +122,71 @@ class KonversiFile extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('File fisik proposal tidak ditemukan di server.');
         }
 
-        $mime = mime_content_type($fullPath);
-        $ext  = pathinfo($crc['proposal_file'], PATHINFO_EXTENSION);
-        $downloadName = 'Proposal_' . $crc['course_code'] . '_' . $crc['id'] . '.' . ($ext ?: 'pdf');
+        $ext = strtolower(pathinfo($crc['proposal_file'], PATHINFO_EXTENSION));
+        $cleanCode = preg_replace('/[^a-zA-Z0-9_-]/', '_', $crc['course_code']);
 
+        // Pratinjau langsung di modal jika format PDF dan tidak meminta download paksa
+        if ($this->request->getGet('download') != '1' && $ext === 'pdf') {
+            return $this->response
+                ->setHeader('Content-Type', 'application/pdf')
+                ->setHeader('Content-Disposition', 'inline; filename="Proposal_' . $cleanCode . '_' . $crc['id'] . '.pdf"')
+                ->setBody(file_get_contents($fullPath));
+        }
+
+        $downloadName = 'Proposal_' . $cleanCode . '_' . $crc['id'] . '.' . ($ext ?: 'pdf');
         return $this->response->download($fullPath, null)->setFileName($downloadName);
     }
 
     /**
-     * Akses / Unduh Berkas LIRS Mahasiswa
+     * Akses / Pratinjau Berkas LIRS Mahasiswa
      */
     public function studentLirs($requestId)
     {
-        $req = $this->requestModel->find($requestId);
+        $userId = session()->get('userId');
+        $role   = session()->get('role');
+
+        $req = $this->requestModel->getRequestWithDetails($requestId);
         if (!$req || empty($req['lirs_file'])) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Berkas LIRS tidak ditemukan.');
+        }
+
+        // Pengecekan Otorisasi Pengaksesan Berkas LIRS
+        $hasAccess = false;
+        if (in_array($role, ['tu', 'kaprodi', 'wadek1', 'admin'])) {
+            $hasAccess = true;
+        } elseif ($role === 'mahasiswa') {
+            $studentModel = new StudentModel();
+            $student      = $studentModel->where('user_id', $userId)->first();
+            if ($student && $student['id'] == $req['student_id']) {
+                $hasAccess = true;
+            }
+        } elseif ($role === 'dosen') {
+            $lecturerModel = new LecturerModel();
+            $lecturer      = $lecturerModel->where('user_id', $userId)->first();
+            if ($lecturer) {
+                // Cek apakah dosen pembimbing magang ini
+                $assignmentModel = new SupervisorAssignmentModel();
+                $assignment      = $assignmentModel->where('internship_id', $req['internship_id'])
+                                                   ->where('lecturer_id', $lecturer['id'])
+                                                   ->first();
+                if ($assignment) {
+                    $hasAccess = true;
+                } else {
+                    // Cek apakah dosen pengampu salah satu MK dalam permohonan konversi ini
+                    $isLecturerInReq = $this->crcModel
+                        ->join('courses', 'courses.id = conversion_request_courses.course_id')
+                        ->where('conversion_request_courses.conversion_request_id', $requestId)
+                        ->where('courses.lecturer_id', $lecturer['id'])
+                        ->countAllResults();
+                    if ($isLecturerInReq > 0) {
+                        $hasAccess = true;
+                    }
+                }
+            }
+        }
+
+        if (!$hasAccess) {
+            return redirect()->to('/dashboard')->with('error', 'Anda tidak memiliki hak akses untuk melihat berkas LIRS ini.');
         }
 
         $fullPath = WRITEPATH . $req['lirs_file'];
@@ -144,7 +194,16 @@ class KonversiFile extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('File fisik LIRS tidak ditemukan di server.');
         }
 
-        $ext = pathinfo($req['lirs_file'], PATHINFO_EXTENSION);
-        return $this->response->download($fullPath, null)->setFileName('LIRS_Mahasiswa_' . $req['id'] . '.' . ($ext ?: 'pdf'));
+        // Jika diminta unduh paksa (?download=1)
+        if ($this->request->getGet('download') == '1') {
+            $ext = pathinfo($req['lirs_file'], PATHINFO_EXTENSION);
+            return $this->response->download($fullPath, null)->setFileName('LIRS_Mahasiswa_' . $req['id'] . '.' . ($ext ?: 'pdf'));
+        }
+
+        // Tampilkan inline di modal / tab browser
+        return $this->response
+            ->setHeader('Content-Type', 'application/pdf')
+            ->setHeader('Content-Disposition', 'inline; filename="LIRS_Mahasiswa_' . $req['id'] . '.pdf"')
+            ->setBody(file_get_contents($fullPath));
     }
 }

@@ -52,6 +52,13 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
 
         // Modul 6: Seminar Magang (Opsional)
         $routes->get('seminar', 'Mahasiswa\Seminar::index');
+
+        // Modul 7: Pengumpulan Berkas & Penilaian Magang
+        $routes->get('penilaian', 'Mahasiswa\Penilaian::index');
+        $routes->get('penilaian/detail/(:num)', 'Mahasiswa\Penilaian::detail/$1');
+        $routes->post('penilaian/submit-drive/(:num)', 'Mahasiswa\Penilaian::submitDrive/$1');
+        $routes->get('penilaian/instansi/(:num)', 'Mahasiswa\Penilaian::cetakInstansi/$1');
+        $routes->post('penilaian/request-instansi-account', 'Mahasiswa\Penilaian::requestInstansiAccount');
     });
 
     // Modul 2: TU Verifikasi Dokumen (Role: tu)
@@ -99,6 +106,16 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
         $routes->get('seminar', 'DosenMk\Seminar::index');
         $routes->post('seminar/keputusan', 'DosenMk\Seminar::setDecision');
         $routes->post('seminar/nilai/(:num)', 'DosenMk\Seminar::submitScore/$1');
+
+        // Modul 7: Penilaian & Pengumpulan Magang
+        $routes->get('penilaian', 'DosenMk\Penilaian::index');
+        $routes->get('penilaian/komponen/(:num)', 'DosenMk\Penilaian::components/$1');
+        $routes->post('penilaian/komponen/(:num)/store', 'DosenMk\Penilaian::storeComponent/$1');
+        $routes->post('penilaian/komponen/update/(:num)', 'DosenMk\Penilaian::updateComponent/$1');
+        $routes->post('penilaian/komponen/delete/(:num)', 'DosenMk\Penilaian::deleteComponent/$1');
+        $routes->get('penilaian/mahasiswa/(:num)/(:num)', 'DosenMk\Penilaian::student/$1/$2');
+        $routes->post('penilaian/review-submission/(:num)', 'DosenMk\Penilaian::reviewSubmission/$1');
+        $routes->post('penilaian/save-grade/(:num)/(:num)', 'DosenMk\Penilaian::saveGrade/$1/$2');
     });
 
     // Modul 3 & 4: Wadek 1 (Role: wadek1)
@@ -112,8 +129,17 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
         $routes->post('konversi/proses/(:num)', 'Wadek1\Konversi::process/$1');
     });
 
+    // Role: Instansi (Penilaian Mahasiswa Magang oleh Pembimbing Lapangan)
+    $routes->group('instansi', ['filter' => 'role:instansi'], static function ($routes) {
+        $routes->get('penilaian', 'Instansi\Penilaian::index');
+        $routes->get('penilaian/form/(:num)', 'Instansi\Penilaian::form/$1');
+        $routes->post('penilaian/save/(:num)', 'Instansi\Penilaian::save/$1');
+        $routes->get('penilaian/cetak/(:num)', 'Instansi\Penilaian::print/$1');
+    });
+
     // Admin: CRUD akun Kaprodi & Instansi Magang ((:segment) = kaprodi|instansi)
     $routes->group('admin/users', ['filter' => 'role:admin'], static function ($routes) {
+        $routes->get('instansi/search-students', 'Admin\Users::searchStudents');
         $routes->get('(:segment)', 'Admin\Users::index/$1');
         $routes->get('(:segment)/form', 'Admin\Users::form/$1');
         $routes->get('(:segment)/form/(:num)', 'Admin\Users::form/$1/$2');

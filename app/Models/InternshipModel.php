@@ -13,6 +13,7 @@ class InternshipModel extends Model
     protected $useSoftDeletes   = true;
     protected $allowedFields    = [
         'student_id',
+        'company_user_id',
         'company_name',
         'company_address',
         'position',
@@ -22,6 +23,10 @@ class InternshipModel extends Model
         'academic_year',
         'semester',
         'status',
+        'instansi_pic_name',
+        'instansi_pic_email',
+        'instansi_pic_phone',
+        'instansi_account_requested_at',
     ];
 
     protected $useTimestamps = true;

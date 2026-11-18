@@ -31,6 +31,30 @@ class Users extends BaseController
         }
     }
 
+    public function searchStudents()
+    {
+        $q = trim((string)$this->request->getGet('q'));
+        if (strlen($q) < 1) {
+            return $this->response->setJSON([]);
+        }
+
+        $internshipModel = new \App\Models\InternshipModel();
+        $results = $internshipModel
+            ->select('internships.id, internships.company_name, internships.position, students.nim, users.name as student_name')
+            ->join('students', 'students.id = internships.student_id')
+            ->join('users', 'users.id = students.user_id')
+            ->groupStart()
+                ->like('users.name', $q)
+                ->orLike('students.nim', $q)
+                ->orLike('internships.company_name', $q)
+            ->groupEnd()
+            ->orderBy('internships.id', 'DESC')
+            ->limit(15)
+            ->findAll();
+
+        return $this->response->setJSON($results);
+    }
+
     public function index(string $type)
     {
         $this->guardType($type);
@@ -40,13 +64,33 @@ class Users extends BaseController
             $builder->select('lecturers.nidn, program_studies.name as prodi_name')
                     ->join('lecturers', 'lecturers.user_id = users.id AND lecturers.deleted_at IS NULL', 'left')
                     ->join('program_studies', 'program_studies.id = lecturers.program_study_id', 'left');
+        } elseif ($type === 'instansi') {
+            $builder->select('users.*, COUNT(DISTINCT internships.id) as student_count, GROUP_CONCAT(DISTINCT users_student.name SEPARATOR ", ") as student_names')
+                    ->join('internships', '(internships.company_user_id = users.id OR LOWER(TRIM(internships.company_name)) = LOWER(TRIM(users.name))) AND internships.deleted_at IS NULL', 'left')
+                    ->join('students', 'students.id = internships.student_id', 'left')
+                    ->join('users as users_student', 'users_student.id = students.user_id', 'left')
+                    ->groupBy('users.id');
+        }
+
+        $pendingRequests = [];
+        if ($type === 'instansi') {
+            $internshipModel = new \App\Models\InternshipModel();
+            $pendingRequests = $internshipModel
+                ->select('internships.*, students.nim, users.name as student_name')
+                ->join('students', 'students.id = internships.student_id')
+                ->join('users', 'users.id = students.user_id')
+                ->where('internships.instansi_account_requested_at IS NOT NULL')
+                ->where('internships.company_user_id IS NULL')
+                ->orderBy('internships.instansi_account_requested_at', 'DESC')
+                ->findAll();
         }
 
         return view('admin/users/index', [
-            'title' => 'Kelola ' . self::TYPES[$type],
-            'type'  => $type,
-            'label' => self::TYPES[$type],
-            'items' => $builder->findAll(),
+            'title'           => 'Kelola ' . self::TYPES[$type],
+            'type'            => $type,
+            'label'           => self::TYPES[$type],
+            'items'           => $builder->findAll(),
+            'pendingRequests' => $pendingRequests,
         ]);
     }
 
@@ -61,12 +105,52 @@ class Users extends BaseController
             $item    += ['nidn' => $lecturer['nidn'] ?? '', 'program_study_id' => $lecturer['program_study_id'] ?? ''];
         }
 
+        $selectedInternshipIds = [];
+        $selectedStudents      = [];
+        if ($type === 'instansi') {
+            $internshipModel = new \App\Models\InternshipModel();
+
+            // Cek jika dibuka dari tombol permintaan akun mahasiswa (?from_internship=X)
+            $fromInternshipId = (int)$this->request->getGet('from_internship');
+            if ($fromInternshipId > 0 && !$item) {
+                $fromReq = $internshipModel
+                    ->select('internships.*, students.nim, users.name as student_name')
+                    ->join('students', 'students.id = internships.student_id')
+                    ->join('users', 'users.id = students.user_id')
+                    ->find($fromInternshipId);
+
+                if ($fromReq) {
+                    $item = [
+                        'name'      => $fromReq['company_name'],
+                        'email'     => $fromReq['instansi_pic_email'] ?: '',
+                        'is_active' => 1,
+                    ];
+                    $selectedInternshipIds = [$fromInternshipId];
+                }
+            } elseif ($id && $item) {
+                $compNameEscaped = $internshipModel->db->escape(strtolower(trim($item['name'])));
+                $selectedInternshipIds = $internshipModel
+                    ->where("(company_user_id = {$id} OR LOWER(TRIM(company_name)) = {$compNameEscaped})")
+                    ->findColumn('id') ?: [];
+            }
+
+            if (!empty($selectedInternshipIds)) {
+                $selectedStudents = $internshipModel
+                    ->select('internships.id, internships.company_name, internships.position, students.nim, users.name as student_name')
+                    ->join('students', 'students.id = internships.student_id')
+                    ->join('users', 'users.id = students.user_id')
+                    ->whereIn('internships.id', $selectedInternshipIds)
+                    ->findAll();
+            }
+        }
+
         return view('admin/users/form', [
-            'title'   => ($id ? 'Edit ' : 'Tambah ') . self::TYPES[$type],
-            'type'    => $type,
-            'label'   => self::TYPES[$type],
-            'item'    => $item,
-            'prodis'  => $type === 'kaprodi' ? (new ProgramStudyModel())->orderBy('name')->findAll() : [],
+            'title'            => ($id ? 'Edit ' : 'Tambah ') . self::TYPES[$type],
+            'type'             => $type,
+            'label'            => self::TYPES[$type],
+            'item'             => $item,
+            'prodis'           => $type === 'kaprodi' ? (new ProgramStudyModel())->orderBy('name')->findAll() : [],
+            'selectedStudents' => $selectedStudents,
         ]);
     }
 
@@ -112,6 +196,24 @@ class Users extends BaseController
                 'nidn'             => $this->request->getPost('nidn'),
                 'program_study_id' => $this->request->getPost('program_study_id'),
             ]);
+        } elseif ($type === 'instansi') {
+            $internshipModel     = new \App\Models\InternshipModel();
+            $postedInternshipIds = $this->request->getPost('internship_ids') ?: [];
+
+            // Lepaskan tautan lama
+            $internshipModel->where('company_user_id', $id)->set(['company_user_id' => null])->update();
+
+            // Hubungkan yang dipilih
+            if (!empty($postedInternshipIds)) {
+                $internshipModel->whereIn('id', $postedInternshipIds)->set(['company_user_id' => $id])->update();
+            } else {
+                $companyName = trim((string)$userData['name']);
+                if (!empty($companyName)) {
+                    $internshipModel->where('LOWER(TRIM(company_name))', strtolower($companyName))
+                                    ->set(['company_user_id' => $id])
+                                    ->update();
+                }
+            }
         }
         $db->transComplete();
 

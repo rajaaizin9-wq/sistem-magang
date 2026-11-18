@@ -140,11 +140,15 @@ class Logbook extends BaseController
 
         $logbooks = $this->logbookModel->getLogbooksByInternshipId($assignment['internship_id']);
 
+        $instansiAssessmentModel = new \App\Models\InstansiAssessmentModel();
+        $instansiAssessment = $instansiAssessmentModel->getAssessmentByInternship($assignment['internship_id']);
+
         $data = [
-            'title'      => 'Pemantauan Logbook: ' . $assignment['student_name'],
-            'lecturer'   => $lecturer,
-            'assignment' => $assignment,
-            'logbooks'   => $logbooks,
+            'title'              => 'Pemantauan Logbook: ' . $assignment['student_name'],
+            'lecturer'           => $lecturer,
+            'assignment'         => $assignment,
+            'logbooks'           => $logbooks,
+            'instansiAssessment' => $instansiAssessment,
         ];
 
         return view('dosen_pembimbing/pemantauan/detail', $data);

@@ -47,6 +47,32 @@
             </div>
         </div>
     </div>
+
+    <?php if (!empty($instansiAssessment)): ?>
+        <div class="mt-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div class="space-y-1">
+                <div class="flex items-center space-x-2">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-600 text-white uppercase">Nilai Instansi</span>
+                    <span class="font-bold text-slate-800">Evaluasi Pembimbing Lapangan: <?= esc($instansiAssessment['evaluator_name'] ?: $assignment['company_name']) ?></span>
+                </div>
+                <?php if (!empty($instansiAssessment['feedback_notes'])): ?>
+                    <p class="text-slate-600 italic">"<?= esc($instansiAssessment['feedback_notes']) ?>"</p>
+                <?php endif; ?>
+            </div>
+            <div class="flex items-center space-x-3 self-end sm:self-center">
+                <div class="text-right">
+                    <span class="text-[10px] text-slate-400 block font-semibold">Skor Akhir:</span>
+                    <span class="text-lg font-black text-emerald-800"><?= number_format($instansiAssessment['final_score'], 1) ?></span>
+                    <span class="px-1.5 py-0.2 rounded bg-emerald-200 text-emerald-900 font-bold text-[10px] ml-1">Grade <?= esc($instansiAssessment['grade']) ?></span>
+                </div>
+                <a href="<?= base_url('instansi/penilaian/cetak/' . $assignment['internship_id']) ?>" target="_blank"
+                   class="px-3 py-1.5 bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-100 rounded-lg font-semibold text-xs transition inline-flex items-center space-x-1 shadow-xs">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                    <span>Lembar Nilai</span>
+                </a>
+            </div>
+        </div>
+    <?php endif; ?>
 </div>
 
 <!-- Timeline Logbook Section -->

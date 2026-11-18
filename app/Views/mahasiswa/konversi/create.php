@@ -94,8 +94,14 @@
 
                     <div id="lirsSuccessAlert" class="hidden p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-start space-x-3">
                         <svg class="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <div class="space-y-1">
-                            <p class="font-bold text-emerald-900" id="lirsSuccessTitle">LIRS Berhasil Divalidasi</p>
+                        <div class="space-y-1.5 flex-1">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                <p class="font-bold text-emerald-900" id="lirsSuccessTitle">LIRS Berhasil Divalidasi</p>
+                                <button type="button" id="btnPreviewSelectedLirs" class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-md bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300 transition w-fit">
+                                    <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    Pratinjau PDF LIRS
+                                </button>
+                            </div>
                             <p id="lirsSuccessDetail" class="text-emerald-700 leading-relaxed">-</p>
                         </div>
                     </div>
@@ -299,6 +305,18 @@ document.addEventListener('DOMContentLoaded', function () {
             updateSummary();
         });
     });
+
+    // Pratinjau berkas LIRS yang dipilih mahasiswa langsung di Modal
+    const btnPreviewSelectedLirs = document.getElementById('btnPreviewSelectedLirs');
+    if (btnPreviewSelectedLirs) {
+        btnPreviewSelectedLirs.addEventListener('click', function () {
+            const file = lirsInput.files[0];
+            if (file) {
+                const blobUrl = URL.createObjectURL(file);
+                openPdfModal(blobUrl, 'Pratinjau Berkas LIRS SIPA UMRAH', file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)');
+            }
+        });
+    }
 
     // Render kartu-kartu mata kuliah hasil LIRS
     function renderCourses(courses, lecturers) {

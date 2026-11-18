@@ -17,10 +17,10 @@
 
     <?php if (!empty($request['lirs_file'])): ?>
         <div>
-            <a href="<?= base_url('konversi/lirs/' . $request['id']) ?>" target="_blank" class="inline-flex items-center px-3.5 py-2 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-sm transition">
+            <button type="button" onclick="openPdfModal('<?= base_url('konversi/lirs/' . $request['id']) ?>', 'Berkas LIRS SIPA UMRAH', 'Mahasiswa: <?= esc($request['student_name']) ?> (NIM: <?= esc($request['nim']) ?>)')" class="inline-flex items-center px-3.5 py-2 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-sm transition">
                 <svg class="w-4 h-4 mr-1.5 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/></svg>
                 Lihat Berkas LIRS Mahasiswa (PDF)
-            </a>
+            </button>
         </div>
     <?php endif; ?>
 </div>
@@ -78,9 +78,15 @@
                                     <span class="text-blue-600 font-bold">📄</span>
                                     <span class="font-medium text-slate-700 truncate"><?= esc($c['proposal_file']) ?></span>
                                 </div>
-                                <a href="<?= base_url('konversi/proposal/' . $c['id']) ?>" target="_blank" class="text-blue-700 hover:text-blue-900 font-semibold flex-shrink-0">
-                                    Unduh Proposal &rarr;
-                                </a>
+                                <?php if (str_ends_with(strtolower($c['proposal_file']), '.pdf')): ?>
+                                    <button type="button" onclick="openPdfModal('<?= base_url('konversi/proposal/' . $c['id']) ?>', 'Proposal Konversi MK: <?= esc($c['course_name']) ?>', 'Kode MK: <?= esc($c['course_code']) ?>')" class="text-blue-700 hover:text-blue-900 font-semibold flex-shrink-0">
+                                        Lihat Proposal &rarr;
+                                    </button>
+                                <?php else: ?>
+                                    <a href="<?= base_url('konversi/proposal/' . $c['id']) ?>" target="_blank" class="text-blue-700 hover:text-blue-900 font-semibold flex-shrink-0">
+                                        Unduh Proposal &rarr;
+                                    </a>
+                                <?php endif; ?>
                             </div>
                         <?php endif; ?>
 

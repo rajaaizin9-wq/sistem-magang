@@ -158,6 +158,9 @@ class Dashboard extends BaseController
             case 'admin':
                 return redirect()->to('admin/users/kaprodi');
 
+            case 'instansi':
+                return redirect()->to('instansi/penilaian');
+
             default:
                 return view('mahasiswa/dashboard', $data);
         }

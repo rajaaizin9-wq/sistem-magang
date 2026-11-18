@@ -348,5 +348,42 @@ class MasterSeeder extends Seeder
                 'updated_at'    => date('Y-m-d H:i:s'),
             ]);
         }
+
+        // 7. Assessment Components (Komponen Pengumpulan Contoh untuk MK INF11020 Data Sains)
+        $dsCourse = $this->db->table('courses')->where('code', 'INF11020')->get()->getRowArray();
+        if ($dsCourse) {
+            $existingComp = $this->db->table('assessment_components')->where('course_id', $dsCourse['id'])->countAllResults();
+            if ($existingComp === 0) {
+                $this->db->table('assessment_components')->insertBatch([
+                    [
+                        'course_id'         => $dsCourse['id'],
+                        'title'             => 'Laporan Akhir Analisis Data & Metodologi',
+                        'description'       => "Unggah berkas dokumen Laporan Akhir Magang (format PDF) yang memuat tahapan perumusan masalah, metodologi pengumpulan dataset, preprocessing, eksplorasi data (EDA), dan evaluasi algoritma Data Science sesuai aktivitas magang.",
+                        'weight_percentage' => 40.00,
+                        'max_score'         => 100.00,
+                        'created_at'        => date('Y-m-d H:i:s'),
+                        'updated_at'        => date('Y-m-d H:i:s'),
+                    ],
+                    [
+                        'course_id'         => $dsCourse['id'],
+                        'title'             => 'Repositori Source Code & Demo Model / Dashboard',
+                        'description'       => "Sertakan tautan folder Google Drive atau file README/link repositori GitHub yang memuat script Python / Jupyter Notebook (.ipynb), link dashboard demo, serta petunjuk cara menjalankan model data science.",
+                        'weight_percentage' => 40.00,
+                        'max_score'         => 100.00,
+                        'created_at'        => date('Y-m-d H:i:s'),
+                        'updated_at'        => date('Y-m-d H:i:s'),
+                    ],
+                    [
+                        'course_id'         => $dsCourse['id'],
+                        'title'             => 'Presentasi & Surat Keterangan / Evaluasi Instansi',
+                        'description'       => "Unggah file slide presentasi hasil magang (.pptx / .pdf) serta scan Surat Keterangan Selesai Magang dan Lembar Evaluasi dari mentor lapangan instansi.",
+                        'weight_percentage' => 20.00,
+                        'max_score'         => 100.00,
+                        'created_at'        => date('Y-m-d H:i:s'),
+                        'updated_at'        => date('Y-m-d H:i:s'),
+                    ],
+                ]);
+            }
+        }
     }
 }
