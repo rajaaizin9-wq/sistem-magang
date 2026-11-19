@@ -147,5 +147,14 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
         $routes->post('(:segment)/save/(:num)', 'Admin\Users::save/$1/$2');
         $routes->post('(:segment)/delete/(:num)', 'Admin\Users::delete/$1/$2');
     });
+
+    // Admin: Kelola Komponen Penilaian Instansi
+    $routes->group('admin/kriteria-instansi', ['filter' => 'role:admin'], static function ($routes) {
+        $routes->get('/', 'Admin\KriteriaInstansi::index');
+        $routes->post('save', 'Admin\KriteriaInstansi::save');
+        $routes->post('save/(:num)', 'Admin\KriteriaInstansi::save/$1');
+        $routes->post('delete/(:num)', 'Admin\KriteriaInstansi::delete/$1');
+        $routes->post('reset-default', 'Admin\KriteriaInstansi::resetDefault');
+    });
 });
 

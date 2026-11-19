@@ -1,4 +1,4 @@
-<?= $this->extend('layouts/main') ?>
+<?= $this->extend('layouts/instansi') ?>
 
 <?= $this->section('content') ?>
 <div class="space-y-6 max-w-4xl mx-auto">
@@ -24,7 +24,7 @@
                 </a>
                 <div class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold shadow-xs">
                     <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                    <span>Rata-rata: <?= number_format($assessment['final_score'], 1) ?> (Grade <?= esc($assessment['grade']) ?>)</span>
+                    <span>Nilai Tersimpan: <?= number_format($assessment['final_score'], 2) ?></span>
                 </div>
             </div>
         <?php endif; ?>
@@ -51,21 +51,6 @@
                     </a>
                 <?php endforeach; ?>
             </div>
-        </div>
-    <?php endif; ?>
-
-    <!-- Flash Alerts -->
-    <?php if (session()->getFlashdata('success')): ?>
-        <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center space-x-2">
-            <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-            <span><?= session()->getFlashdata('success') ?></span>
-        </div>
-    <?php endif; ?>
-
-    <?php if (session()->getFlashdata('error')): ?>
-        <div class="p-4 bg-red-50 border border-red-200 rounded-xl text-xs text-red-800 flex items-center space-x-2">
-            <svg class="w-4 h-4 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            <span><?= session()->getFlashdata('error') ?></span>
         </div>
     <?php endif; ?>
 
@@ -119,127 +104,39 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
-                        <!-- Kriteria 1 -->
-                        <tr class="hover:bg-slate-50/60 transition">
-                            <td class="py-4 px-4 text-center font-bold text-slate-700 align-top">1.</td>
-                            <td class="py-4 px-4 space-y-1.5">
-                                <h3 class="font-bold text-slate-900 text-sm">Aktifitas di Lapangan</h3>
-                                <ul class="list-disc list-inside text-[11px] text-slate-600 space-y-0.5 pl-1">
-                                    <li>1.1 Kehadiran Mahasiswa di Instansi/Perusahaan</li>
-                                    <li>1.2 Tepat Waktu dalam Kehadiran (Disiplin)</li>
-                                </ul>
-                            </td>
-                            <td class="py-4 px-4 align-middle text-center">
-                                <input type="number" 
-                                       step="0.01" 
-                                       min="0" 
-                                       max="100" 
-                                       required
-                                       name="score_field_activity" 
-                                       id="score1"
-                                       value="<?= esc(old('score_field_activity', $assessment['score_field_activity'] ?? '')) ?>"
-                                       placeholder="1 - 100" 
-                                       class="score-input w-32 px-3 py-2 text-center text-sm font-bold border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none transition">
-                            </td>
-                        </tr>
-
-                        <!-- Kriteria 2 -->
-                        <tr class="hover:bg-slate-50/60 transition">
-                            <td class="py-4 px-4 text-center font-bold text-slate-700 align-top">2.</td>
-                            <td class="py-4 px-4 space-y-1.5">
-                                <h3 class="font-bold text-slate-900 text-sm">Kerajinan</h3>
-                                <ul class="list-disc list-inside text-[11px] text-slate-600 space-y-0.5 pl-1">
-                                    <li>2.1 Keterampilan yang Dimiliki Mahasiswa</li>
-                                    <li>2.2 Penggunaan Keterampilan terhadap Kepentingan Instansi/Perusahaan</li>
-                                </ul>
-                            </td>
-                            <td class="py-4 px-4 align-middle text-center">
-                                <input type="number" 
-                                       step="0.01" 
-                                       min="0" 
-                                       max="100" 
-                                       required
-                                       name="score_craftsmanship" 
-                                       id="score2"
-                                       value="<?= esc(old('score_craftsmanship', $assessment['score_craftsmanship'] ?? '')) ?>"
-                                       placeholder="1 - 100" 
-                                       class="score-input w-32 px-3 py-2 text-center text-sm font-bold border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none transition">
-                            </td>
-                        </tr>
-
-                        <!-- Kriteria 3 -->
-                        <tr class="hover:bg-slate-50/60 transition">
-                            <td class="py-4 px-4 text-center font-bold text-slate-700 align-top">3.</td>
-                            <td class="py-4 px-4 space-y-1.5">
-                                <h3 class="font-bold text-slate-900 text-sm">Inisiatif</h3>
-                                <ul class="list-disc list-inside text-[11px] text-slate-600 space-y-0.5 pl-1">
-                                    <li>3.1 Kecepatan dan ketepatan menguasai materi/problem yang disajikan di instansi/perusahaan</li>
-                                    <li>3.2 Tanggap terhadap permasalahan yang timbul dalam lingkungan KP Mahasiswa</li>
-                                    <li>3.3 Penggunaan materi yang dikuasai untuk menyelesaikan pekerjaan</li>
-                                </ul>
-                            </td>
-                            <td class="py-4 px-4 align-middle text-center">
-                                <input type="number" 
-                                       step="0.01" 
-                                       min="0" 
-                                       max="100" 
-                                       required
-                                       name="score_initiative" 
-                                       id="score3"
-                                       value="<?= esc(old('score_initiative', $assessment['score_initiative'] ?? '')) ?>"
-                                       placeholder="1 - 100" 
-                                       class="score-input w-32 px-3 py-2 text-center text-sm font-bold border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none transition">
-                            </td>
-                        </tr>
-
-                        <!-- Kriteria 4 -->
-                        <tr class="hover:bg-slate-50/60 transition">
-                            <td class="py-4 px-4 text-center font-bold text-slate-700 align-top">4.</td>
-                            <td class="py-4 px-4 space-y-1.5">
-                                <h3 class="font-bold text-slate-900 text-sm">Kemampuan Mengemukakan Ide</h3>
-                                <ul class="list-disc list-inside text-[11px] text-slate-600 space-y-0.5 pl-1">
-                                    <li>4.1 Beradaptasi terhadap lingkungan instansi/perusahaan</li>
-                                    <li>4.2 Kesopanan dalam berbicara terhadap pegawai/karyawan dan pimpinan</li>
-                                    <li>4.3 Tidak pasif</li>
-                                </ul>
-                            </td>
-                            <td class="py-4 px-4 align-middle text-center">
-                                <input type="number" 
-                                       step="0.01" 
-                                       min="0" 
-                                       max="100" 
-                                       required
-                                       name="score_communication" 
-                                       id="score4"
-                                       value="<?= esc(old('score_communication', $assessment['score_communication'] ?? '')) ?>"
-                                       placeholder="1 - 100" 
-                                       class="score-input w-32 px-3 py-2 text-center text-sm font-bold border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none transition">
-                            </td>
-                        </tr>
-
-                        <!-- Kriteria 5 -->
-                        <tr class="hover:bg-slate-50/60 transition">
-                            <td class="py-4 px-4 text-center font-bold text-slate-700 align-top">5.</td>
-                            <td class="py-4 px-4 space-y-1.5">
-                                <h3 class="font-bold text-slate-900 text-sm">Kemampuan Menganalisa Persoalan</h3>
-                                <ul class="list-disc list-inside text-[11px] text-slate-600 space-y-0.5 pl-1">
-                                    <li>5.1 Kemampuan Mengidentifikasi dan Memecahkan Masalah</li>
-                                    <li>5.2 Kemampuan kerja sama</li>
-                                </ul>
-                            </td>
-                            <td class="py-4 px-4 align-middle text-center">
-                                <input type="number" 
-                                       step="0.01" 
-                                       min="0" 
-                                       max="100" 
-                                       required
-                                       name="score_problem_solving" 
-                                       id="score5"
-                                       value="<?= esc(old('score_problem_solving', $assessment['score_problem_solving'] ?? '')) ?>"
-                                       placeholder="1 - 100" 
-                                       class="score-input w-32 px-3 py-2 text-center text-sm font-bold border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none transition">
-                            </td>
-                        </tr>
+                        <?php if (empty($criteria)): ?>
+                            <tr>
+                                <td colspan="3" class="py-10 text-center text-slate-400 italic">
+                                    Belum ada kriteria penilaian yang diaktifkan oleh Admin.
+                                </td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($criteria as $index => $c): ?>
+                                <?php 
+                                    $scoreVal = old("scores.{$c['id']}", $scores[$c['id']] ?? '');
+                                ?>
+                                <tr class="hover:bg-slate-50/60 transition">
+                                    <td class="py-4 px-4 text-center font-bold text-slate-700 align-top"><?= $index + 1 ?>.</td>
+                                    <td class="py-4 px-4 space-y-1.5">
+                                        <h3 class="font-bold text-slate-900 text-sm"><?= esc($c['name']) ?></h3>
+                                        <?php if (!empty($c['description'])): ?>
+                                            <div class="text-[11px] text-slate-600 leading-relaxed whitespace-pre-line pl-1"><?= esc($c['description']) ?></div>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="py-4 px-4 align-middle text-center">
+                                        <input type="number" 
+                                               step="0.01" 
+                                               min="0" 
+                                               max="100" 
+                                               required
+                                               name="scores[<?= $c['id'] ?>]" 
+                                               value="<?= esc($scoreVal) ?>"
+                                               placeholder="0 - 100" 
+                                               class="score-input w-32 px-3 py-2 text-center text-sm font-bold border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none transition">
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                     <tfoot>
                         <!-- Jumlah Nilai -->
@@ -251,20 +148,15 @@
                                 </span>
                             </td>
                         </tr>
-                        <!-- Total = Jumlah Nilai / 5 -->
+                        <!-- Total = Jumlah Nilai / N -->
                         <tr class="bg-blue-50/80 font-bold border-t border-blue-100">
                             <td colspan="2" class="py-3 px-4 text-right uppercase tracking-wider text-blue-900">
-                                Total = Jumlah Nilai / 5 (Nilai Rata-rata):
+                                Total = Jumlah Nilai / <?= count($criteria) ?: 1 ?>:
                             </td>
                             <td class="py-3 px-4 text-center">
-                                <div class="flex items-center justify-center space-x-2">
-                                    <span class="text-lg font-black text-blue-700" id="displayAverage">
-                                        <?= $assessment ? number_format($assessment['final_score'], 2) : '0.00' ?>
-                                    </span>
-                                    <span class="px-2 py-0.5 text-xs font-black bg-blue-600 text-white rounded-md shadow-xs" id="displayGrade">
-                                        Grade <?= $assessment['grade'] ?? 'E' ?>
-                                    </span>
-                                </div>
+                                <span class="text-lg font-black text-blue-700" id="displayAverage">
+                                    <?= $assessment ? number_format($assessment['final_score'], 2) : '0.00' ?>
+                                </span>
                             </td>
                         </tr>
                     </tfoot>
@@ -323,16 +215,10 @@
 <!-- Script Live Calculation -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const inputs = [
-            document.getElementById('score1'),
-            document.getElementById('score2'),
-            document.getElementById('score3'),
-            document.getElementById('score4'),
-            document.getElementById('score5')
-        ];
+        const inputs = document.querySelectorAll('.score-input');
         const displaySum = document.getElementById('displaySum');
         const displayAverage = document.getElementById('displayAverage');
-        const displayGrade = document.getElementById('displayGrade');
+        const totalCriteria = <?= count($criteria) ?: 1 ?>;
 
         function calculateLiveTotal() {
             let sum = 0;
@@ -341,29 +227,14 @@
                 sum += val;
             });
 
-            const avg = sum / 5.0;
+            const avg = sum / totalCriteria;
 
             displaySum.textContent = sum.toFixed(2);
             displayAverage.textContent = avg.toFixed(2);
-            displayGrade.textContent = 'Grade ' + getGrade(avg);
-        }
-
-        function getGrade(score) {
-            if (score >= 85.0) return 'A';
-            if (score >= 80.0) return 'A-';
-            if (score >= 75.0) return 'B+';
-            if (score >= 70.0) return 'B';
-            if (score >= 65.0) return 'B-';
-            if (score >= 60.0) return 'C+';
-            if (score >= 55.0) return 'C';
-            if (score >= 40.0) return 'D';
-            return 'E';
         }
 
         inputs.forEach(inp => {
-            if (inp) {
-                inp.addEventListener('input', calculateLiveTotal);
-            }
+            inp.addEventListener('input', calculateLiveTotal);
         });
     });
 </script>

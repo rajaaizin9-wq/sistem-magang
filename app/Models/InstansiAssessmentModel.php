@@ -16,6 +16,7 @@ class InstansiAssessmentModel extends Model
         'instansi_user_id',
         'evaluator_name',
         'evaluator_position',
+        'scores_json',
         'score_field_activity',
         'score_craftsmanship',
         'score_initiative',

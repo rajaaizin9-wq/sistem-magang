@@ -57,7 +57,24 @@ class Penilaian extends BaseController
             ->orderBy('id', 'DESC')
             ->findAll();
 
-        $activeInternship = $internships[0] ?? null;
+        $selectedPeriodeId = (int)$this->request->getGet('periode');
+        $activeInternship = null;
+
+        if ($selectedPeriodeId > 0) {
+            foreach ($internships as $item) {
+                if ((int)$item['id'] === $selectedPeriodeId) {
+                    $activeInternship = $item;
+                    break;
+                }
+            }
+        }
+
+        if (!$activeInternship && !empty($internships)) {
+            // Utamakan yang berstatus INTERNSHIP_ACTIVE, jika tidak ada pilih yang terbaru
+            $activeList = array_filter($internships, fn($i) => $i['status'] === 'INTERNSHIP_ACTIVE');
+            $activeInternship = !empty($activeList) ? reset($activeList) : $internships[0];
+        }
+
         $coursesData = [];
 
         if ($activeInternship) {
@@ -98,6 +115,7 @@ class Penilaian extends BaseController
         $data = [
             'title'              => 'Pengumpulan Berkas & Penilaian Magang',
             'student'            => $student,
+            'internships'        => $internships,
             'internship'         => $activeInternship,
             'coursesData'        => $coursesData,
             'instansiAssessment' => $instansiAssessment,
@@ -268,11 +286,39 @@ class Penilaian extends BaseController
         $userModel = new \App\Models\UserModel();
         $user = $userModel->find($assessment['instansi_user_id']) ?: ['name' => $internship['company_name']];
 
+        $criteriaModel = new \App\Models\InstansiAssessmentComponentModel();
+        $criteria = $criteriaModel->getActiveComponents();
+
+        $scores = [];
+        if (!empty($assessment['scores_json'])) {
+            $decoded = json_decode($assessment['scores_json'], true);
+            if (is_array($decoded)) {
+                $scores = $decoded;
+            }
+        }
+        if (empty($scores)) {
+            $legacyMap = [
+                1 => $assessment['score_field_activity'] ?? null,
+                2 => $assessment['score_craftsmanship'] ?? null,
+                3 => $assessment['score_initiative'] ?? null,
+                4 => $assessment['score_communication'] ?? null,
+                5 => $assessment['score_problem_solving'] ?? null,
+            ];
+            foreach ($criteria as $c) {
+                $order = (int)$c['order_number'];
+                if (isset($legacyMap[$order]) && $legacyMap[$order] !== null) {
+                    $scores[$c['id']] = (float)$legacyMap[$order];
+                }
+            }
+        }
+
         $data = [
             'title'      => 'Lembar Penilaian Instansi - ' . $internship['student_name'],
             'user'       => $user,
             'internship' => $internship,
             'assessment' => $assessment,
+            'criteria'   => $criteria,
+            'scores'     => $scores,
         ];
 
         return view('instansi/penilaian/print', $data);

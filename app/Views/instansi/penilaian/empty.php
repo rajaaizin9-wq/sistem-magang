@@ -1,4 +1,4 @@
-<?= $this->extend('layouts/main') ?>
+<?= $this->extend('layouts/instansi') ?>
 
 <?= $this->section('content') ?>
 <div class="max-w-2xl mx-auto py-12 text-center space-y-4">

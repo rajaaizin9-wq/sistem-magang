@@ -6,18 +6,21 @@ use App\Controllers\BaseController;
 use App\Models\UserModel;
 use App\Models\InternshipModel;
 use App\Models\InstansiAssessmentModel;
+use App\Models\InstansiAssessmentComponentModel;
 
 class Penilaian extends BaseController
 {
     protected UserModel $userModel;
     protected InternshipModel $internshipModel;
     protected InstansiAssessmentModel $assessmentModel;
+    protected InstansiAssessmentComponentModel $criteriaModel;
 
     public function __construct()
     {
         $this->userModel       = new UserModel();
         $this->internshipModel = new InternshipModel();
         $this->assessmentModel = new InstansiAssessmentModel();
+        $this->criteriaModel   = new InstansiAssessmentComponentModel();
     }
 
     /**
@@ -84,6 +87,8 @@ class Penilaian extends BaseController
 
         // Ambil nilai yang sudah tersimpan untuk mahasiswa aktif ini (jika ada)
         $assessment = $this->assessmentModel->where('internship_id', $activeInternship['id'])->first();
+        $criteria   = $this->criteriaModel->getActiveComponents();
+        $scores     = $this->getAssessmentScoresArray($assessment, $criteria);
 
         $data = [
             'title'            => 'Penilaian Mahasiswa Magang: ' . $activeInternship['student_name'],
@@ -91,6 +96,8 @@ class Penilaian extends BaseController
             'students'         => $students,
             'activeInternship' => $activeInternship,
             'assessment'       => $assessment,
+            'criteria'         => $criteria,
+            'scores'           => $scores,
         ];
 
         return view('instansi/penilaian/form', $data);
@@ -109,46 +116,52 @@ class Penilaian extends BaseController
      */
     public function save($internshipId)
     {
-        $user = $this->getCurrentInstansiUser();
+        $user       = $this->getCurrentInstansiUser();
         $internship = $this->getAuthorizedInternship($internshipId, $user);
+        $criteria   = $this->criteriaModel->getActiveComponents();
 
-        $rules = [
-            'score_field_activity'  => 'required|numeric|greater_than_equal_to[0]|less_than_equal_to[100]',
-            'score_craftsmanship'   => 'required|numeric|greater_than_equal_to[0]|less_than_equal_to[100]',
-            'score_initiative'      => 'required|numeric|greater_than_equal_to[0]|less_than_equal_to[100]',
-            'score_communication'   => 'required|numeric|greater_than_equal_to[0]|less_than_equal_to[100]',
-            'score_problem_solving' => 'required|numeric|greater_than_equal_to[0]|less_than_equal_to[100]',
-        ];
-
-        if (!$this->validate($rules)) {
-            return redirect()->to("instansi/penilaian?mahasiswa={$internshipId}")->withInput()->with('error', 'Semua poin nilai (1-5) wajib diisi dengan angka 0 - 100.');
+        if (empty($criteria)) {
+            return redirect()->to("instansi/penilaian?mahasiswa={$internshipId}")->with('error', 'Komponen penilaian instansi belum diatur oleh Admin.');
         }
 
-        $s1 = (float)$this->request->getPost('score_field_activity');
-        $s2 = (float)$this->request->getPost('score_craftsmanship');
-        $s3 = (float)$this->request->getPost('score_initiative');
-        $s4 = (float)$this->request->getPost('score_communication');
-        $s5 = (float)$this->request->getPost('score_problem_solving');
+        $postedScores = (array)$this->request->getPost('scores');
+        $totalScore   = 0.0;
+        $savedScores  = [];
 
-        $totalScore = $s1 + $s2 + $s3 + $s4 + $s5;
-        $finalScore = round($totalScore / 5.0, 2);
-        $grade      = InstansiAssessmentModel::convertScoreToGrade($finalScore);
+        foreach ($criteria as $c) {
+            $val = $postedScores[$c['id']] ?? null;
+            if ($val === null || $val === '' || !is_numeric($val) || (float)$val < 0 || (float)$val > 100) {
+                return redirect()->to("instansi/penilaian?mahasiswa={$internshipId}")
+                    ->withInput()
+                    ->with('error', 'Semua poin kriteria penilaian wajib diisi dengan angka 0 - 100.');
+            }
+            $fVal = round((float)$val, 2);
+            $totalScore += $fVal;
+            $savedScores[$c['id']] = $fVal;
+        }
+
+        $countCriteria = count($criteria) ?: 1;
+        $finalScore    = round($totalScore / (float)$countCriteria, 2);
+        $grade         = InstansiAssessmentModel::convertScoreToGrade($finalScore);
 
         $evaluatorName     = trim((string)$this->request->getPost('evaluator_name')) ?: $user['name'];
         $evaluatorPosition = trim((string)$this->request->getPost('evaluator_position')) ?: 'Pembimbing Lapangan';
         $feedbackNotes     = trim((string)$this->request->getPost('feedback_notes'));
         $assessmentDate    = $this->request->getPost('assessment_date') ?: date('Y-m-d');
 
+        // Petakan 5 nilai pertama ke kolom legacy untuk kompatibilitas data
+        $criteriaValues = array_values($savedScores);
         $assessmentData = [
             'internship_id'         => $internshipId,
             'instansi_user_id'      => (int)$user['id'],
             'evaluator_name'        => $evaluatorName,
             'evaluator_position'    => $evaluatorPosition,
-            'score_field_activity'  => $s1,
-            'score_craftsmanship'   => $s2,
-            'score_initiative'      => $s3,
-            'score_communication'   => $s4,
-            'score_problem_solving' => $s5,
+            'scores_json'           => json_encode($savedScores),
+            'score_field_activity'  => $criteriaValues[0] ?? 0.00,
+            'score_craftsmanship'   => $criteriaValues[1] ?? 0.00,
+            'score_initiative'      => $criteriaValues[2] ?? 0.00,
+            'score_communication'   => $criteriaValues[3] ?? 0.00,
+            'score_problem_solving' => $criteriaValues[4] ?? 0.00,
             'total_score'           => $totalScore,
             'final_score'           => $finalScore,
             'grade'                 => $grade,
@@ -173,11 +186,11 @@ class Penilaian extends BaseController
         send_notification(
             (int)$internship['student_user_id'],
             'Nilai dari Instansi Telah Terbit',
-            "Pembimbing instansi {$internship['company_name']} telah memberikan penilaian magang Anda dengan nilai rata-rata {$finalScore} (Grade {$grade}).",
+            "Pembimbing instansi {$internship['company_name']} telah memberikan penilaian magang Anda dengan nilai rata-rata: {$finalScore}.",
             'mahasiswa/dashboard'
         );
 
-        return redirect()->to("instansi/penilaian?mahasiswa={$internshipId}")->with('success', "Penilaian untuk mahasiswa {$internship['student_name']} berhasil disimpan! (Nilai Rata-rata: {$finalScore}, Grade: {$grade}).");
+        return redirect()->to("instansi/penilaian?mahasiswa={$internshipId}")->with('success', "Penilaian untuk mahasiswa {$internship['student_name']} berhasil disimpan! (Nilai Rata-rata: {$finalScore}).");
     }
 
     /**
@@ -193,14 +206,55 @@ class Penilaian extends BaseController
             return redirect()->to('instansi/penilaian?mahasiswa=' . $internshipId)->with('error', 'Penilaian untuk mahasiswa ini belum diisi.');
         }
 
+        $criteria = $this->criteriaModel->getActiveComponents();
+        $scores   = $this->getAssessmentScoresArray($assessment, $criteria);
+
         $data = [
             'title'      => 'Lembar Penilaian Instansi - ' . $internship['student_name'],
             'user'       => $user,
             'internship' => $internship,
             'assessment' => $assessment,
+            'criteria'   => $criteria,
+            'scores'     => $scores,
         ];
 
         return view('instansi/penilaian/print', $data);
+    }
+
+    /**
+     * Helper: Ekstrak nilai per kriteria baik dari scores_json maupun kolom legacy
+     */
+    private function getAssessmentScoresArray(?array $assessment, array $criteria): array
+    {
+        $scores = [];
+        if (!$assessment) {
+            return $scores;
+        }
+
+        if (!empty($assessment['scores_json'])) {
+            $decoded = json_decode($assessment['scores_json'], true);
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        // Fallback untuk penilaian lama yang masih menggunakan 5 kolom flat
+        $legacyMap = [
+            1 => $assessment['score_field_activity'] ?? null,
+            2 => $assessment['score_craftsmanship'] ?? null,
+            3 => $assessment['score_initiative'] ?? null,
+            4 => $assessment['score_communication'] ?? null,
+            5 => $assessment['score_problem_solving'] ?? null,
+        ];
+
+        foreach ($criteria as $c) {
+            $order = (int)$c['order_number'];
+            if (isset($legacyMap[$order]) && $legacyMap[$order] !== null) {
+                $scores[$c['id']] = (float)$legacyMap[$order];
+            }
+        }
+
+        return $scores;
     }
 
     /**

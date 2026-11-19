@@ -222,73 +222,23 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td style="text-align: center; vertical-align: top;">1.</td>
-                    <td>
-                        <strong>Aktifitas di Lapangan</strong>
-                        <ul class="sub-criteria">
-                            <li>1.1 Kehadiran Mahasiswa di Instansi/Perusahaan</li>
-                            <li>1.2 Tepat Waktu dalam Kehadiran (Disiplin)</li>
-                        </ul>
-                    </td>
-                    <td style="text-align: center; font-weight: bold; font-size: 12pt; vertical-align: middle;">
-                        <?= number_format($assessment['score_field_activity'], 2) ?>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center; vertical-align: top;">2.</td>
-                    <td>
-                        <strong>Kerajinan</strong>
-                        <ul class="sub-criteria">
-                            <li>2.1 Keterampilan yang Dimiliki Mahasiswa</li>
-                            <li>2.2 Penggunaan Keterampilan terhadap Kepentingan Instansi/Perusahaan</li>
-                        </ul>
-                    </td>
-                    <td style="text-align: center; font-weight: bold; font-size: 12pt; vertical-align: middle;">
-                        <?= number_format($assessment['score_craftsmanship'], 2) ?>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center; vertical-align: top;">3.</td>
-                    <td>
-                        <strong>Inisiatif</strong>
-                        <ul class="sub-criteria">
-                            <li>3.1 Kecepatan dan ketepatan menguasai materi/problem yang disajikan di instansi/perusahaan</li>
-                            <li>3.2 Tanggap terhadap permasalahan yang timbul dalam lingkungan KP Mahasiswa</li>
-                            <li>3.3 Penggunaan materi yang dikuasai untuk menyelesaikan pekerjaan</li>
-                        </ul>
-                    </td>
-                    <td style="text-align: center; font-weight: bold; font-size: 12pt; vertical-align: middle;">
-                        <?= number_format($assessment['score_initiative'], 2) ?>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center; vertical-align: top;">4.</td>
-                    <td>
-                        <strong>Kemampuan Mengemukakan Ide</strong>
-                        <ul class="sub-criteria">
-                            <li>4.1 Beradaptasi terhadap lingkungan instansi/perusahaan</li>
-                            <li>4.2 Kesopanan dalam berbicara terhadap pegawai/karyawan dan pimpinan</li>
-                            <li>4.3 Tidak pasif</li>
-                        </ul>
-                    </td>
-                    <td style="text-align: center; font-weight: bold; font-size: 12pt; vertical-align: middle;">
-                        <?= number_format($assessment['score_communication'], 2) ?>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center; vertical-align: top;">5.</td>
-                    <td>
-                        <strong>Kemampuan Menganalisa Persoalan</strong>
-                        <ul class="sub-criteria">
-                            <li>5.1 Kemampuan Mengidentifikasi dan Memecahkan Masalah</li>
-                            <li>5.2 Kemampuan kerja sama</li>
-                        </ul>
-                    </td>
-                    <td style="text-align: center; font-weight: bold; font-size: 12pt; vertical-align: middle;">
-                        <?= number_format($assessment['score_problem_solving'], 2) ?>
-                    </td>
-                </tr>
+                <?php foreach ($criteria as $idx => $c): ?>
+                    <?php 
+                        $scoreVal = $scores[$c['id']] ?? 0.00;
+                    ?>
+                    <tr>
+                        <td style="text-align: center; vertical-align: top;"><?= $idx + 1 ?>.</td>
+                        <td>
+                            <strong><?= esc($c['name']) ?></strong>
+                            <?php if (!empty($c['description'])): ?>
+                                <div style="font-size: 10pt; color: #333; margin-top: 3px; line-height: 1.4; white-space: pre-line;"><?= esc($c['description']) ?></div>
+                            <?php endif; ?>
+                        </td>
+                        <td style="text-align: center; font-weight: bold; font-size: 12pt; vertical-align: middle;">
+                            <?= number_format($scoreVal, 2) ?>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
                 <tr>
                     <td colspan="2" style="text-align: right; font-weight: bold; padding-right: 15px;">
                         Jumlah Nilai
@@ -299,10 +249,10 @@
                 </tr>
                 <tr>
                     <td colspan="2" style="text-align: right; font-weight: bold; padding-right: 15px;">
-                        Total = Jumlah Nilai / 5
+                        Total = Jumlah Nilai / <?= count($criteria) ?: 1 ?>
                     </td>
                     <td style="text-align: center; font-weight: bold; font-size: 13pt;">
-                        <?= number_format($assessment['final_score'], 2) ?> (<?= esc($assessment['grade']) ?>)
+                        <?= number_format($assessment['final_score'], 2) ?>
                     </td>
                 </tr>
             </tbody>
