@@ -20,6 +20,12 @@
 
     <!-- Mode Switcher Tabs -->
     <div class="flex items-center bg-slate-100 p-1.5 rounded-xl border border-slate-200 self-start md:self-auto">
+        <?php if (!empty($isWadek)): ?>
+            <a href="<?= base_url('switch-role/wadek1') ?>"
+               class="flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-bold transition <?= $activeRole === 'wadek1' ? 'bg-white text-purple-700 shadow-sm border border-slate-200/80 ring-1 ring-purple-500/20' : 'text-slate-600 hover:text-slate-900' ?>">
+                <span>🏛️ Wakil Dekan 1</span>
+            </a>
+        <?php endif; ?>
         <a href="<?= base_url('switch-role/dosen_pembimbing') ?>"
            class="flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-bold transition <?= $activeRole === 'dosen_pembimbing' ? 'bg-white text-blue-700 shadow-sm border border-slate-200/80 ring-1 ring-blue-500/20' : 'text-slate-600 hover:text-slate-900' ?>">
             <span>👨‍🏫 Dosen Pembimbing</span>

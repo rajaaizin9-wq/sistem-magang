@@ -55,7 +55,7 @@ class PenentuanPembimbing extends BaseController
         $lecturers = $this->lecturerModel->select('lecturers.id, users.name, lecturers.nidn')
                                          ->join('users', 'users.id = lecturers.user_id')
                                          ->where('lecturers.program_study_id', $prodiId)
-                                         ->where('users.role', 'dosen')
+                                         ->whereIn('users.role', ['dosen', 'wadek1'])
                                          ->where('users.is_active', 1)
                                          ->orderBy('users.name', 'ASC')
                                          ->findAll();
@@ -93,7 +93,7 @@ class PenentuanPembimbing extends BaseController
         $lecturers = $this->lecturerModel->select('lecturers.id, users.name, lecturers.nidn')
                                          ->join('users', 'users.id = lecturers.user_id')
                                          ->where('lecturers.program_study_id', $kaprodi['program_study_id'])
-                                         ->where('users.role', 'dosen')
+                                         ->whereIn('users.role', ['dosen', 'wadek1'])
                                          ->where('users.is_active', 1)
                                          ->orderBy('users.name', 'ASC')
                                          ->findAll();
@@ -135,7 +135,7 @@ class PenentuanPembimbing extends BaseController
         $selectedLecturer = $this->lecturerModel->select('lecturers.*, users.role, users.name as lecturer_name')
                                                ->join('users', 'users.id = lecturers.user_id')
                                                ->where('lecturers.id', $lecturerId)
-                                               ->where('users.role', 'dosen')
+                                               ->whereIn('users.role', ['dosen', 'wadek1'])
                                                ->where('users.is_active', 1)
                                                ->first();
 

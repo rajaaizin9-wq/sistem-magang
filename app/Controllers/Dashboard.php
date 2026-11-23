@@ -11,16 +11,23 @@ class Dashboard extends BaseController
 {
     public function index()
     {
-        $role   = session()->get('role');
-        $userId = session()->get('userId');
+        $role       = session()->get('role');
+        $userId     = session()->get('userId');
+        $isWadek    = ($role === 'wadek1' || session()->get('is_wadek') === true);
+        $activeRole = session()->get('active_role') ?? $role;
+
+        // Context role dashboard aktif (mendukung switch role untuk dosen & wadek)
+        $dashboardRole = ($role === 'dosen' || $isWadek) ? $activeRole : $role;
 
         $data = [
-            'title'    => 'Dashboard SIMAGANG',
-            'role'     => $role,
-            'userName' => session()->get('userName'),
+            'title'      => 'Dashboard SIMAGANG',
+            'role'       => $role,
+            'activeRole' => $activeRole,
+            'isWadek'    => $isWadek,
+            'userName'   => session()->get('userName'),
         ];
 
-        switch ($role) {
+        switch ($dashboardRole) {
             case 'mahasiswa':
                 $studentModel    = new StudentModel();
                 $internshipModel = new InternshipModel();
@@ -68,6 +75,10 @@ class Dashboard extends BaseController
                 $lecturer                   = $lecturerModel->where('user_id', $userId)->first();
                 $data['pendingAssignments'] = $internshipModel->where('status', 'ADMIN_APPROVED')->countAllResults();
                 $data['conversionCount']    = $lecturer ? count($conversionModel->getRequestsForKaprodi($lecturer['program_study_id'])) : 0;
+                $data['lecturersCount']     = $lecturer ? $lecturerModel->join('users', 'users.id = lecturers.user_id')
+                                                                        ->where('lecturers.program_study_id', $lecturer['program_study_id'])
+                                                                        ->whereIn('users.role', ['dosen', 'wadek1'])
+                                                                        ->countAllResults() : 0;
                 return view('kaprodi/dashboard', $data);
 
             case 'dosen':

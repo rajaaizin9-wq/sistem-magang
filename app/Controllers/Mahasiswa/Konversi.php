@@ -83,7 +83,7 @@ class Konversi extends BaseController
             ->select('lecturers.id, lecturers.nidn, users.name, users.email')
             ->join('users', 'users.id = lecturers.user_id')
             ->where('lecturers.program_study_id', $student['program_study_id'])
-            ->where('users.role', 'dosen')
+            ->whereIn('users.role', ['dosen', 'wadek1'])
             ->where('users.is_active', 1)
             ->orderBy('users.name', 'ASC')
             ->findAll();
@@ -144,7 +144,7 @@ class Konversi extends BaseController
             ->select('lecturers.id, lecturers.nidn, users.name')
             ->join('users', 'users.id = lecturers.user_id')
             ->where('lecturers.program_study_id', $student['program_study_id'])
-            ->where('users.role', 'dosen')
+            ->whereIn('users.role', ['dosen', 'wadek1'])
             ->where('users.is_active', 1)
             ->orderBy('users.name', 'ASC')
             ->findAll();

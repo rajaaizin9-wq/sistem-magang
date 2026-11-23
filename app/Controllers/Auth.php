@@ -47,6 +47,7 @@ class Auth extends BaseController
         }
 
         // Set Session Data
+        $isWadek    = ($user['role'] === 'wadek1');
         $activeRole = ($user['role'] === 'dosen') ? 'dosen_pembimbing' : $user['role'];
 
         session()->set([
@@ -55,6 +56,7 @@ class Auth extends BaseController
             'userEmail'   => $user['email'],
             'role'        => $user['role'],
             'active_role' => $activeRole,
+            'is_wadek'    => $isWadek,
             'isLoggedIn'  => true,
         ]);
 
@@ -67,18 +69,32 @@ class Auth extends BaseController
             return redirect()->to('/login');
         }
 
-        if (session()->get('role') !== 'dosen') {
+        $baseRole = session()->get('role');
+        $isWadek  = ($baseRole === 'wadek1' || session()->get('is_wadek') === true);
+
+        // Hanya dosen dan akun wadek yang dapat melakukan pergantian peran
+        if ($baseRole !== 'dosen' && !$isWadek) {
             return redirect()->to('/dashboard');
         }
 
         $allowedRoles = ['dosen_pembimbing', 'dosen_mk'];
+        if ($isWadek) {
+            $allowedRoles[] = 'wadek1';
+        }
+
         if (!in_array($targetRole, $allowedRoles)) {
             return redirect()->to('/dashboard')->with('error', 'Peran yang dipilih tidak valid.');
         }
 
         session()->set('active_role', $targetRole);
 
-        $roleLabel = ($targetRole === 'dosen_pembimbing') ? 'Dosen Pembimbing' : 'Dosen Pengampu MK';
+        $labels = [
+            'wadek1'           => 'Wakil Dekan 1',
+            'dosen_pembimbing' => 'Dosen Pembimbing',
+            'dosen_mk'         => 'Dosen Pengampu MK',
+        ];
+        $roleLabel = $labels[$targetRole] ?? $targetRole;
+
         return redirect()->to('/dashboard')->with('success', 'Berhasil beralih ke peran ' . $roleLabel . '.');
     }
 

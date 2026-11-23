@@ -8,7 +8,20 @@
             <h1 class="text-xl font-bold text-slate-900 tracking-tight">Dashboard Wadek 1</h1>
             <p class="text-sm text-slate-500 mt-1">Pemantauan data magang dan konversi mata kuliah mahasiswa fakultas.</p>
         </div>
-        <div class="flex items-center space-x-2">
+        <div class="flex flex-wrap items-center gap-2">
+            <!-- Mode Switcher Tabs for Wadek -->
+            <div class="inline-flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs">
+                <span class="px-3 py-1.5 rounded-lg font-bold bg-white text-purple-700 shadow-sm border border-slate-200/80 ring-1 ring-purple-500/20">
+                    🏛️ Wadek 1
+                </span>
+                <a href="<?= base_url('switch-role/dosen_pembimbing') ?>" class="px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:text-slate-900 transition">
+                    👨‍🏫 Pembimbing
+                </a>
+                <a href="<?= base_url('switch-role/dosen_mk') ?>" class="px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:text-slate-900 transition">
+                    📚 Pengampu MK
+                </a>
+            </div>
+
             <a href="<?= base_url('wadek1/pemantauan-magang') ?>" class="inline-flex items-center px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition">
                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
                 Pemantauan Magang

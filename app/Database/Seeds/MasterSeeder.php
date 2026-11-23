@@ -204,6 +204,12 @@ class MasterSeeder extends Seeder
                 'nidn'  => '0015039005',
                 'phone' => '08555555555',
             ],
+            // Prof. Dr. Ir. Bambang (Wadek 1)
+            [
+                'email' => 'wadek1@simagang.ac.id',
+                'nidn'  => '0010017001',
+                'phone' => '08666666666',
+            ],
         ];
 
         foreach ($lecturersData as $ld) {

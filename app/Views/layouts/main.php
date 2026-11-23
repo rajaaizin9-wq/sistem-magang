@@ -54,13 +54,15 @@
 
             <?php
             $role       = session()->get('role');
+            $isWadek    = ($role === 'wadek1' || session()->get('is_wadek') === true);
             $activeRole = session()->get('active_role') ?? ($role === 'dosen' ? 'dosen_pembimbing' : $role);
+            $roleBadgeText = $activeRole === 'wadek1' ? 'Wakil Dekan 1' : str_replace('_', ' ', ($role === 'dosen' || $isWadek) ? $activeRole : $role);
             ?>
 
             <!-- Role Badge Banner -->
             <div class="mx-4 my-3 px-3 py-2 bg-slate-800 rounded-lg text-xs flex items-center space-x-2 border border-slate-700/50 flex-shrink-0">
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span class="text-slate-300 capitalize font-medium">Role: <?= str_replace('_', ' ', $role === 'dosen' ? $activeRole : $role) ?></span>
+                <span class="text-slate-300 capitalize font-medium">Role: <?= esc($roleBadgeText) ?></span>
             </div>
 
             <!-- Navigation Links -->
@@ -136,9 +138,24 @@
                         <svg class="w-5 h-5 <?= $getNavIconClass('kaprodi/konversi') ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/></svg>
                         <span>Pemantauan Konversi</span>
                     </a>
+                    <a href="<?= base_url('kaprodi/dosen') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg <?= $getNavItemClass('kaprodi/dosen') ?>">
+                        <svg class="w-5 h-5 <?= $getNavIconClass('kaprodi/dosen') ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        <span>Kelola Role Dosen</span>
+                    </a>
                 <?php endif; ?>
 
-                <?php if (in_array($role, ['dosen', 'dosen_pembimbing', 'dosen_mk'])): ?>
+                <?php if ($activeRole === 'wadek1'): ?>
+                    <a href="<?= base_url('wadek1/pemantauan-magang') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg <?= $getNavItemClass('wadek1/pemantauan-magang') ?>">
+                        <svg class="w-5 h-5 <?= $getNavIconClass('wadek1/pemantauan-magang') ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                        <span>Pemantauan Magang</span>
+                    </a>
+                    <a href="<?= base_url('wadek1/konversi') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg <?= $getNavItemClass('wadek1/konversi') ?>">
+                        <svg class="w-5 h-5 <?= $getNavIconClass('wadek1/konversi') ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>Validasi Konversi MK</span>
+                    </a>
+                <?php endif; ?>
+
+                <?php if ($role === 'dosen' || $isWadek): ?>
                     <?php if ($activeRole === 'dosen_pembimbing'): ?>
                         <!-- Menu Khusus Mode: Dosen Pembimbing -->
                         <div class="pt-3 pb-1">
@@ -170,17 +187,6 @@
                             <span>Penilaian & Pengumpulan</span>
                         </a>
                     <?php endif; ?>
-                <?php endif; ?>
-
-                <?php if ($role === 'wadek1'): ?>
-                    <a href="<?= base_url('wadek1/pemantauan-magang') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg <?= $getNavItemClass('wadek1/pemantauan-magang') ?>">
-                        <svg class="w-5 h-5 <?= $getNavIconClass('wadek1/pemantauan-magang') ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
-                        <span>Pemantauan Magang</span>
-                    </a>
-                    <a href="<?= base_url('wadek1/konversi') ?>" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg <?= $getNavItemClass('wadek1/konversi') ?>">
-                        <svg class="w-5 h-5 <?= $getNavIconClass('wadek1/konversi') ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>Validasi Konversi MK</span>
-                    </a>
                 <?php endif; ?>
 
                 <?php if ($role === 'instansi'): ?>
@@ -217,10 +223,16 @@
                 </div>
 
                 <div class="flex items-center space-x-3 sm:space-x-4">
-                    <!-- Quick Role Switch Pill for Dosen in Header -->
-                    <?php if ($role === 'dosen'): ?>
+                    <!-- Quick Role Switch Pill in Header -->
+                    <?php if ($role === 'dosen' || $isWadek): ?>
                         <div class="hidden sm:inline-flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs">
                             <span class="text-slate-400 font-medium px-2 text-[11px] uppercase tracking-wider">Peran:</span>
+                            <?php if ($isWadek): ?>
+                                <a href="<?= base_url('switch-role/wadek1') ?>"
+                                   class="px-2.5 py-1 rounded font-semibold transition <?= $activeRole === 'wadek1' ? 'bg-white text-purple-700 shadow-sm border border-slate-200/80' : 'text-slate-600 hover:text-slate-900' ?>">
+                                    🏛️ Wadek 1
+                                </a>
+                            <?php endif; ?>
                             <a href="<?= base_url('switch-role/dosen_pembimbing') ?>"
                                class="px-2.5 py-1 rounded font-semibold transition <?= $activeRole === 'dosen_pembimbing' ? 'bg-white text-blue-700 shadow-sm border border-slate-200/80' : 'text-slate-600 hover:text-slate-900' ?>">
                                 👨‍🏫 Pembimbing
@@ -321,7 +333,7 @@
                             </div>
                             <div class="text-left hidden sm:block">
                                 <span class="text-xs font-semibold text-slate-800 block leading-tight"><?= session()->get('userName') ?></span>
-                                <span class="text-[10px] text-slate-400 capitalize block leading-tight"><?= str_replace('_', ' ', $role === 'dosen' ? $activeRole : $role) ?></span>
+                                <span class="text-[10px] text-slate-400 capitalize block leading-tight"><?= esc($roleBadgeText) ?></span>
                             </div>
                             <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </button>
@@ -332,9 +344,15 @@
                                 <p class="text-xs text-slate-500 truncate"><?= session()->get('userEmail') ?></p>
                             </div>
 
-                            <?php if ($role === 'dosen'): ?>
+                            <?php if ($role === 'dosen' || $isWadek): ?>
                                 <div class="py-1.5 border-b border-slate-100 bg-slate-50/50">
                                     <span class="block px-4 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Ganti Mode Peran</span>
+                                    <?php if ($isWadek): ?>
+                                        <a href="<?= base_url('switch-role/wadek1') ?>" class="flex items-center justify-between px-4 py-1.5 text-xs hover:bg-slate-100 transition <?= $activeRole === 'wadek1' ? 'font-bold text-purple-600 bg-purple-50/50' : 'text-slate-700' ?>">
+                                            <span>🏛️ Wakil Dekan 1</span>
+                                            <?php if ($activeRole === 'wadek1'): ?><span class="text-purple-600 font-bold">✓</span><?php endif; ?>
+                                        </a>
+                                    <?php endif; ?>
                                     <a href="<?= base_url('switch-role/dosen_pembimbing') ?>" class="flex items-center justify-between px-4 py-1.5 text-xs hover:bg-slate-100 transition <?= $activeRole === 'dosen_pembimbing' ? 'font-bold text-blue-600 bg-blue-50/50' : 'text-slate-700' ?>">
                                         <span>👨‍🏫 Dosen Pembimbing</span>
                                         <?php if ($activeRole === 'dosen_pembimbing'): ?><span class="text-blue-600 font-bold">✓</span><?php endif; ?>

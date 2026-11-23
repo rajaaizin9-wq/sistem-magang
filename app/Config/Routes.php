@@ -78,6 +78,10 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
         // Modul 4: Monitoring Konversi
         $routes->get('konversi', 'Kaprodi\Konversi::index');
         $routes->get('konversi/detail/(:num)', 'Kaprodi\Konversi::detail/$1');
+
+        // Modul Kelola Role Dosen
+        $routes->get('dosen', 'Kaprodi\Dosen::index');
+        $routes->post('dosen/update-role/(:num)', 'Kaprodi\Dosen::updateRole/$1');
     });
 
     // Modul 3, 4 & 5: Dosen Pembimbing (Role: dosen / dosen_pembimbing)

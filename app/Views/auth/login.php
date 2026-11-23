@@ -4,7 +4,7 @@
 <div class="w-full max-w-md bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
     <!-- Header Logo & Title -->
     <div class="bg-slate-900 px-6 py-6 text-center text-white">
-        <div class="inline-flex items-center justify-center w-12 h-12 bg-blue-600 rounded-lg text-white font-bold text-xl mb-3 shadow">
+        <div class="inline-flex items-center justify-center w-12 h-12 bg-red-600 rounded-lg text-white font-bold text-xl mb-3 shadow">
             S
         </div>
         <h1 class="text-xl font-bold tracking-tight">SIMAGANG</h1>
