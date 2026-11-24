@@ -3,14 +3,17 @@
 namespace App\Controllers;
 
 use App\Models\UserModel;
+use App\Models\LecturerModel;
 
 class Auth extends BaseController
 {
     protected $userModel;
+    protected $lecturerModel;
 
     public function __construct()
     {
-        $this->userModel = new UserModel();
+        $this->userModel     = new UserModel();
+        $this->lecturerModel = new LecturerModel();
     }
 
     public function login()
@@ -46,8 +49,17 @@ class Auth extends BaseController
             return redirect()->back()->withInput()->with('error', 'Email atau password yang Anda masukkan salah.');
         }
 
-        // Set Session Data
-        $isWadek    = ($user['role'] === 'wadek1');
+        // Cek apakah user adalah dosen dan memiliki tugas struktural sebagai wadek 1
+        $isWadek = false;
+        if ($user['role'] === 'dosen') {
+            $lecturer = $this->lecturerModel->where('user_id', $user['id'])->first();
+            if ($lecturer && !empty($lecturer['is_wadek'])) {
+                $isWadek = true;
+            }
+        } elseif ($user['role'] === 'wadek1') {
+            $isWadek = true;
+        }
+
         $activeRole = ($user['role'] === 'dosen') ? 'dosen_pembimbing' : $user['role'];
 
         session()->set([

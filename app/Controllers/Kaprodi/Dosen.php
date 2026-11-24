@@ -34,12 +34,12 @@ class Dosen extends BaseController
         $search      = trim((string)$this->request->getGet('q'));
 
         $builder = $this->lecturerModel
-            ->select('lecturers.id as lecturer_id, lecturers.nidn, lecturers.phone, lecturers.program_study_id, users.id as user_id, users.name, users.email, users.role, program_studies.name as prodi_name')
+            ->select('lecturers.id as lecturer_id, lecturers.nidn, lecturers.phone, lecturers.program_study_id, lecturers.is_wadek, users.id as user_id, users.name, users.email, users.role, program_studies.name as prodi_name')
             ->join('users', 'users.id = lecturers.user_id')
             ->join('program_studies', 'program_studies.id = lecturers.program_study_id', 'left')
             ->where('users.is_active', 1)
-            ->whereIn('users.role', ['dosen', 'wadek1'])
-            ->orderBy("FIELD(users.role, 'wadek1', 'dosen')")
+            ->where('users.role', 'dosen')
+            ->orderBy('lecturers.is_wadek', 'DESC')
             ->orderBy('users.name', 'ASC');
 
         if (!empty($filterProdi)) {
@@ -90,26 +90,33 @@ class Dosen extends BaseController
             return redirect()->back()->with('error', 'Akun user dosen tidak ditemukan.');
         }
 
-        if ($user['role'] === $newRole) {
-            return redirect()->back()->with('info', "Role dosen {$user['name']} sudah bernilai " . ($newRole === 'wadek1' ? 'Wakil Dekan 1' : 'Dosen') . '.');
+        $targetIsWadek = ($newRole === 'wadek1') ? 1 : 0;
+
+        if ((int)($lecturer['is_wadek'] ?? 0) === $targetIsWadek) {
+            return redirect()->back()->with('info', "Peran dosen {$user['name']} sudah bernilai " . ($newRole === 'wadek1' ? 'Wakil Dekan 1' : 'Dosen') . '.');
         }
 
-        // Jika mengubah menjadi wadek1, kembalikan akun wadek1 sebelumnya menjadi dosen (1 fakultas = 1 wadek1)
-        if ($newRole === 'wadek1') {
-            $this->userModel->where('role', 'wadek1')
-                            ->where('id !=', $user['id'])
-                            ->set(['role' => 'dosen'])
-                            ->update();
+        if ($targetIsWadek === 1) {
+            // Reset wadek1 sebelumnya di fakultas agar hanya ada 1 Wadek 1 aktif
+            $this->lecturerModel->where('is_wadek', 1)
+                                ->where('id !=', $lecturerId)
+                                ->set(['is_wadek' => 0])
+                                ->update();
 
-            $this->userModel->update($user['id'], ['role' => 'wadek1']);
+            // Set dosen ini memiliki role/tugas struktural Wadek 1
+            $this->lecturerModel->update($lecturerId, ['is_wadek' => 1]);
 
-            return redirect()->back()->with('success', "Dosen {$user['name']} berhasil ditetapkan sebagai Wakil Dekan 1 (Wadek 1).");
+            // Akun login tetap akun dosen (role = 'dosen')
+            $this->userModel->update($user['id'], ['role' => 'dosen']);
+
+            return redirect()->back()->with('success', "Dosen {$user['name']} berhasil ditugaskan memiliki role Wakil Dekan 1 (Wadek 1). Beliau login menggunakan akun dosennya dan dapat beralih ke peran Wadek 1.");
         }
 
-        // Kembalikan ke dosen
+        // Kembalikan ke Dosen biasa
+        $this->lecturerModel->update($lecturerId, ['is_wadek' => 0]);
         $this->userModel->update($user['id'], ['role' => 'dosen']);
 
-        return redirect()->back()->with('success', "Role {$user['name']} berhasil dikembalikan menjadi Dosen.");
+        return redirect()->back()->with('success', "Peran Wakil Dekan 1 untuk {$user['name']} berhasil dicabut. Akun kembali menjadi Dosen biasa.");
     }
 }
 

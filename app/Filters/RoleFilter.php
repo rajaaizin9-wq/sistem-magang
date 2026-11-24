@@ -39,10 +39,10 @@ class RoleFilter implements FilterInterface
         // Pengecekan otorisasi role
         $hasAccess = in_array($userRole, $arguments) || in_array($activeRole, $arguments);
 
-        // Jika user adalah wadek, akun juga memiliki hak akses dosen
+        // Jika user adalah wadek, akun memiliki akses dosen dan wadek 1
         if (!$hasAccess && $isWadek) {
-            $allowedDosenRoles = ['dosen', 'dosen_pembimbing', 'dosen_mk'];
-            if (!empty(array_intersect($arguments, $allowedDosenRoles))) {
+            $allowedRoles = ['wadek1', 'dosen', 'dosen_pembimbing', 'dosen_mk'];
+            if (!empty(array_intersect($arguments, $allowedRoles))) {
                 $hasAccess = true;
             }
         }

@@ -16,6 +16,7 @@ class LecturerModel extends Model
         'nidn',
         'program_study_id',
         'phone',
+        'is_wadek',
     ];
 
     protected $useTimestamps = true;

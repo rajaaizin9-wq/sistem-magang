@@ -117,12 +117,12 @@ class MasterSeeder extends Seeder
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s'),
             ],
-            // Wadek 1
+            // Wadek 1 (Dosen dengan penugasan Wadek 1)
             [
                 'name'       => 'Prof. Dr. Ir. Bambang (Wadek 1)',
                 'email'      => 'wadek1@simagang.ac.id',
                 'password'   => $hashedPassword,
-                'role'       => 'wadek1',
+                'role'       => 'dosen',
                 'is_active'  => 1,
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s'),
@@ -206,20 +206,23 @@ class MasterSeeder extends Seeder
             ],
             // Prof. Dr. Ir. Bambang (Wadek 1)
             [
-                'email' => 'wadek1@simagang.ac.id',
-                'nidn'  => '0010017001',
-                'phone' => '08666666666',
+                'email'    => 'wadek1@simagang.ac.id',
+                'nidn'     => '0010017001',
+                'phone'    => '08666666666',
+                'is_wadek' => 1,
             ],
         ];
 
         foreach ($lecturersData as $ld) {
             $uId      = $getUser($ld['email']);
             $existing = $this->db->table('lecturers')->where('user_id', $uId)->get()->getRowArray();
+            $isWadek  = $ld['is_wadek'] ?? 0;
             if ($existing) {
                 $this->db->table('lecturers')->where('id', $existing['id'])->update([
                     'nidn'             => $ld['nidn'],
                     'program_study_id' => $ifProdiId,
                     'phone'            => $ld['phone'],
+                    'is_wadek'         => $isWadek,
                     'updated_at'       => date('Y-m-d H:i:s'),
                 ]);
             } else {
@@ -228,6 +231,7 @@ class MasterSeeder extends Seeder
                     'nidn'             => $ld['nidn'],
                     'program_study_id' => $ifProdiId,
                     'phone'            => $ld['phone'],
+                    'is_wadek'         => $isWadek,
                     'created_at'       => date('Y-m-d H:i:s'),
                     'updated_at'       => date('Y-m-d H:i:s'),
                 ]);

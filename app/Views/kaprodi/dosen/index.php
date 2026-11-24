@@ -23,9 +23,9 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         <div class="space-y-1">
-            <p class="font-bold">Informasi Penugasan Role Dosen:</p>
+            <p class="font-bold">Informasi Penugasan Role Wadek 1:</p>
             <p class="text-slate-600 leading-relaxed">
-                Dosen yang berstatus <strong>Wakil Dekan 1 (Wadek 1)</strong> memiliki akses ke portal Wadek 1 untuk pemantauan magang fakultas dan pengesahan konversi SKS, sekaligus tetap dapat menjalankan tugas tridharma sebagai <strong>Dosen Pembimbing</strong> maupun <strong>Dosen Pengampu MK</strong> melalui fitur <em>Switch Role</em>. Satu fakultas hanya memiliki 1 pejabat aktif Wadek 1.
+                Wadek 1 adalah dosen yang memiliki penugasan struktural. Beliau <strong>tetap login menggunakan akun dosennya</strong> (bukan akun terpisah). Saat login, akun tersebut memiliki opsi untuk beralih peran (<em>Switch Role</em>) ke <strong>Wakil Dekan 1</strong> untuk pemantauan magang dan pengesahan konversi fakultas, di samping menjalankan peran tridharma sebagai <strong>Dosen Pembimbing</strong> dan <strong>Dosen Pengampu MK</strong>.
             </p>
         </div>
     </div>
@@ -96,7 +96,7 @@
                         </tr>
                     <?php else: ?>
                         <?php foreach ($lecturers as $index => $lec): ?>
-                            <?php $isWadek = ($lec['role'] === 'wadek1'); ?>
+                            <?php $isWadek = !empty($lec['is_wadek']); ?>
                             <tr class="hover:bg-slate-50/60 transition <?= $isWadek ? 'bg-purple-50/25' : '' ?>">
                                 <td class="py-4 px-4 text-center text-slate-400 font-semibold"><?= $index + 1 ?></td>
                                 <td class="py-4 px-4">
